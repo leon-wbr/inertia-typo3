@@ -1,6 +1,0 @@
-node_modules/
-vendor/
-pnpm-lock.yaml
-pnpm-workspace.yaml
-Resources/Private/Templates/
-*.md

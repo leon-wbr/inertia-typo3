@@ -11,16 +11,15 @@ const root = dirname(fileURLToPath(import.meta.url));
 const hotFile = resolve(root, "var/vite-dev-server");
 
 /**
- * Keeps the dev server's file watcher out of vendor/, except for the
- * sitepackage sources. vendor/leon-wbr/inertia is a symlink to the repository
- * root, which contains example/vendor again: watching it recurses until Node
- * runs out of memory. var/ and public/ only hold caches and build output.
+ * Keeps the dev server's file watcher out of vendor/, var/ and public/.
+ * vendor/leon-wbr/inertia is a symlink to the repository root, which contains
+ * example/vendor again: watching it recurses until Node runs out of memory.
+ * The sitepackage sources are watched where they live, in packages/.
  */
 function ignoredByWatcher(path: string): boolean {
-  if (path.startsWith(`${root}/var/`) || path.startsWith(`${root}/public/`)) {
-    return true;
-  }
-  return /\/vendor\/(?!leon-wbr(?:$|\/inertia-sitepackage(?:$|\/)))/.test(path);
+  return ["vendor", "var", "public"].some(
+    (dir) => path === `${root}/${dir}` || path.startsWith(`${root}/${dir}/`),
+  );
 }
 
 /**

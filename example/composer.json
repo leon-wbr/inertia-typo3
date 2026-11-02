@@ -13,15 +13,17 @@
       }
     },
     {
-      "type": "vcs",
-      "url": "https://github.com/leon-wbr/inertia-sitepackage.git",
-      "no-api": true
+      "type": "path",
+      "url": "packages/*",
+      "options": {
+        "symlink": true
+      }
     }
   ],
   "require": {
     "php": "^8.2",
     "leon-wbr/inertia": "*@dev",
-    "leon-wbr/inertia-sitepackage": "dev-feat/typo3-14-inertia-3",
+    "leon-wbr/inertia-sitepackage": "@dev",
     "praetorius/vite-asset-collector": "^1.18.4",
     "typo3/cms-backend": "^14.3.10",
     "typo3/cms-core": "^14.3.10",

@@ -2,7 +2,9 @@
 
 # TYPO3 Inertia Sitepackage
 
-An example TYPO3 sitepackage with an [Inertia.js](https://inertiajs.com/) 3, React 19 and Vite 8 frontend, built on the [TYPO3 Inertia adapter](https://github.com/leon-wbr/inertia-typo3). TYPO3 keeps routing, languages, access and the page cache; React renders the pages.
+The example project's sitepackage, and a starter for your own: a TYPO3 sitepackage with an [Inertia.js](https://inertiajs.com/) 3, React 19 and Vite 8 frontend, built on the [TYPO3 Inertia adapter](../../../README.md). TYPO3 keeps routing, languages, access and the page cache; React renders the pages.
+
+It used to live in its own repository, `leon-wbr/inertia-sitepackage`; its history is kept here.
 
 ## What it contains
 
@@ -20,12 +22,12 @@ An example TYPO3 sitepackage with an [Inertia.js](https://inertiajs.com/) 3, Rea
 |---|---|
 | TYPO3 | 14.3 |
 | PHP | 8.2 to 8.5 |
-| [leon-wbr/inertia](https://github.com/leon-wbr/inertia-typo3) | current `main` |
+| [leon-wbr/inertia](../../../README.md) | the version in this repository |
 | Node.js | 26 (LTS), with pnpm 12 |
 
 ## Quickstart
 
-The fastest way to see it running is the example project in the adapter repository, which installs this sitepackage:
+Run it in the example project:
 
 ```sh
 git clone https://github.com/leon-wbr/inertia-typo3.git
@@ -35,33 +37,16 @@ ddev setup-example
 ddev launch
 ```
 
-## Installation in your own project
+## Using it in your own project
 
-Neither package is on Packagist yet, so add both repositories to your project's `composer.json` and require them:
+Copy this directory into your project's `packages/` directory and require it through a Composer path repository. The [main README](../../../README.md#starting-from-the-example-sitepackage) has the steps.
 
-```json
-{
-  "repositories": [
-    { "type": "vcs", "url": "https://github.com/leon-wbr/inertia-typo3.git" },
-    { "type": "vcs", "url": "https://github.com/leon-wbr/inertia-sitepackage.git" }
-  ]
-}
-```
-
-```sh
-composer require leon-wbr/inertia:@dev leon-wbr/inertia-sitepackage:@dev
-```
-
-Add the site set `leon-wbr/inertia-sitepackage` to your site configuration (`dependencies:` in `config/sites/<site>/config.yaml`). It pulls in the adapter's set and fluid_styled_content.
-
-The frontend is built by Vite in your project root, with [vite-plugin-typo3](https://github.com/s2b/vite-plugin-typo3) collecting the entry point from `Configuration/ViteEntrypoints.json`. Install the runtime and build dependencies there:
+The frontend is built by Vite in your project root, with [vite-plugin-typo3](https://github.com/s2b/vite-plugin-typo3) collecting the entry point from `Configuration/ViteEntrypoints.json`. The example's [`package.json`](../../package.json) and [`vite.config.ts`](../../vite.config.ts) are a working setup; the minimum is:
 
 ```sh
 pnpm add @inertiajs/react react react-dom html-react-parser tailwindcss @tailwindcss/vite
 pnpm add -D vite vite-plugin-typo3 @vitejs/plugin-react
 ```
-
-and create a `vite.config.ts`:
 
 ```ts
 import tailwindcss from "@tailwindcss/vite";
@@ -78,18 +63,11 @@ export default defineConfig({
 });
 ```
 
-`pnpm vite` starts the dev server, `pnpm vite build` writes the production build to `public/_assets/vite/`, where vite-asset-collector finds it. The example project's `vite.config.ts` also shows how to switch TYPO3 between the dev server and the build automatically.
+`pnpm vite` starts the dev server, `pnpm vite build` writes the production build to `public/_assets/vite/`, where vite-asset-collector finds it.
 
 ## Development
 
-The frontend source is type-checked and linted in this repository:
-
-```sh
-pnpm install
-pnpm verify   # ESLint, Prettier, TypeScript 7
-```
-
-The PHP code, the build and the end-to-end tests run in the adapter repository's `ddev verify`, against this package as the example project installs it.
+The sitepackage has no tooling of its own: the example project lints, formats and type-checks it (one pnpm workspace, one ESLint, Prettier and TypeScript config), and `ddev verify` covers its PHP, the build and the end-to-end tests.
 
 ## License
 

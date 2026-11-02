@@ -8,8 +8,8 @@ parameters:
     - Configuration
     - Tests
     - ext_localconf.php
-    # The example's sitepackage, as installed from leon-wbr/inertia-sitepackage
-    - example/vendor/leon-wbr/inertia-sitepackage/Classes
+    # The example's sitepackage
+    - example/packages/sitepackage/Classes
   tmpDir: example/var/cache/phpstan
   typo3:
     requestGetAttributeMapping:

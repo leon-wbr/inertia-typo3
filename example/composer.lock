@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7d993620a3c7bf2c37adc04fc5568bc5",
+    "content-hash": "bb6b3c1d35594f7f4c15d96d1f6a1392",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1261,17 +1261,11 @@
         },
         {
             "name": "leon-wbr/inertia-sitepackage",
-            "version": "dev-feat/typo3-14-inertia-3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/leon-wbr/inertia-sitepackage.git",
-                "reference": "5badb11728e9aa9ec87e3b1889ff36083e6e520e"
-            },
+            "version": "dev-main",
             "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/leon-wbr/inertia-sitepackage/zipball/5badb11728e9aa9ec87e3b1889ff36083e6e520e",
-                "reference": "5badb11728e9aa9ec87e3b1889ff36083e6e520e",
-                "shasum": ""
+                "type": "path",
+                "url": "packages/sitepackage",
+                "reference": "1a320665e958adcd09ea7b45344023a9dde7cab0"
             },
             "require": {
                 "leon-wbr/inertia": "*",
@@ -1299,7 +1293,10 @@
                 }
             ],
             "description": "Example TYPO3 sitepackage with an Inertia.js, React and Vite frontend.",
-            "time": "2026-11-02T21:49:36+00:00"
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
         },
         {
             "name": "lolli42/finediff",

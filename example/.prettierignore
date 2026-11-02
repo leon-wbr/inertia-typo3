@@ -10,3 +10,4 @@ fixtures/
 config/
 pnpm-workspace.yaml
 *.md
+packages/*/Resources/Private/Templates/
