@@ -6,6 +6,7 @@ namespace LeonWbr\Inertia\Service;
 
 use TYPO3\CMS\Core\Collection\LazyRecordCollection;
 use TYPO3\CMS\Core\Domain\RecordFactory;
+use TYPO3\CMS\Core\Resource\Collection\LazyFileReferenceCollection;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
 class InertiaContentElementRenderer
@@ -26,7 +27,7 @@ class InertiaContentElementRenderer
     $contentElementArr = $contentElement->toArray();
 
     foreach ($contentElement->toArray() as $key => $value) {
-      if ($value instanceof LazyRecordCollection) {
+      if ($value instanceof LazyRecordCollection || $value instanceof LazyFileReferenceCollection) {
         if ($contentElementArr[$key] instanceof LazyRecordCollection || !is_array($contentElementArr[$key])) {
           $contentElementArr[$key] = [];
         }
