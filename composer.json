@@ -1,10 +1,13 @@
 {
   "name": "leon-wbr/inertia",
   "type": "typo3-cms-extension",
-  "description": "A TYPO3 adapter for InertiaJS.",
+  "description": "A TYPO3 adapter for Inertia.js.",
   "require": {
-    "php": ">=8.2",
-    "typo3/cms-core": "^13.4"
+    "php": "^8.2",
+    "typo3/cms-core": "^14.3.10",
+    "typo3/cms-extbase": "^14.3.10",
+    "typo3/cms-fluid": "^14.3.10",
+    "typo3/cms-frontend": "^14.3.10"
   },
   "autoload": {
     "psr-4": {

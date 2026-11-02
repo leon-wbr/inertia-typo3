@@ -2,21 +2,17 @@ page = PAGE
 page {
     typeNum = 0
     config {
-        disableAllHeaderCode = 0
-        xhtml_cleaning = 0
-        admPanel = 0
-        debug = 1
-        no_cache = 1
-        noPageTitle = 1
-        showWebsiteTitle = 0
+        noPageTitle = 2
     }
 
-    10 < tt_content.inertia_renderer.20
+    # The page plugin is uncached (USER_INT): the page itself stays in TYPO3's
+    # page cache, the Inertia page object is built per request.
+    10 = EXTBASEPLUGIN
+    10 {
+        extensionName = Inertia
+        pluginName = Renderer
+    }
 }
-
-[request && traverse(request.getHeaders(), 'x-inertia') == true]
-    page.config.disableAllHeaderCode = 1
-[END]
 
 plugin.tx_inertia {
     view {

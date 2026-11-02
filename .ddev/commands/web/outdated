@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+## Description: List outdated direct Composer and pnpm dependencies of the example project
+## Usage: outdated
+## Example: "ddev outdated"
+
+cd /var/www/html/example || exit 1
+echo "==> composer outdated --direct"
+composer outdated --direct
+echo
+echo "==> pnpm outdated"
+pnpm outdated

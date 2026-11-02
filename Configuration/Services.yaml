@@ -6,4 +6,19 @@ services:
 
   LeonWbr\Inertia\:
     resource: '../Classes/*'
-    exclude: '../Classes/Domain/Model/*'
+    exclude:
+      - '../Classes/Event/*'
+      - '../Classes/Props/*'
+      - '../Classes/Support/*'
+
+  LeonWbr\Inertia\Service\InertiaService:
+    public: true
+
+  LeonWbr\Inertia\Middleware\InertiaMiddleware:
+    public: true
+
+  LeonWbr\Inertia\Service\NavigationService:
+    public: true
+
+  LeonWbr\Inertia\Service\InertiaContentElementRenderer:
+    public: true

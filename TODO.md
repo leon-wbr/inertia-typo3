@@ -3,6 +3,10 @@
 Features to implement in order of priority:
 
 - [ ] [Server-Side Rendering (SSR)](https://inertiajs.com/server-side-rendering)
-- [ ] [Partial Reloads](https://inertiajs.com/partial-reloads)
-- [ ] [Deferred Props](https://inertiajs.com/deferred-props)
-- [ ] Optional/Lazy Props
+- [ ] Validation errors and flash data across redirects (`errors`, `flash`), stored in the frontend session
+- [ ] [Once props](https://inertiajs.com/once-props) and [infinite scroll](https://inertiajs.com/infinite-scroll) props
+- [x] [Partial reloads](https://inertiajs.com/partial-reloads)
+- [x] [Deferred props](https://inertiajs.com/deferred-props)
+- [x] Optional and always props
+- [x] [Merging props](https://inertiajs.com/merging-props)
+- [x] [History encryption](https://inertiajs.com/history-encryption) flags

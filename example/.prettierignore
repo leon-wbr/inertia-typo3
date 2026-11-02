@@ -1,0 +1,12 @@
+vendor/
+public/
+var/
+node_modules/
+playwright-report/
+test-results/
+pnpm-lock.yaml
+composer.lock
+fixtures/
+config/
+pnpm-workspace.yaml
+*.md

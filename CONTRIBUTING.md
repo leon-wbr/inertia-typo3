@@ -6,7 +6,8 @@ We're in early development and welcome all contributions! The project aims to fo
 
 1. Fork and clone the repository
 2. Make your changes
-3. Submit a pull request
+3. Run `ddev verify` (see the README) and make sure it passes
+4. Submit a pull request
 
 That's it! No extensive process, no strict rules. Do-ocracy.
 

@@ -1,0 +1,12 @@
+# Not shipped with the Composer package: the example project, tests and tooling.
+/.ddev export-ignore
+/.editorconfig export-ignore
+/.gitattributes export-ignore
+/.github export-ignore
+/.gitignore export-ignore
+/.nvmrc export-ignore
+/.php-cs-fixer.dist.php export-ignore
+/Build export-ignore
+/Tests export-ignore
+/example export-ignore
+/phpstan.neon export-ignore

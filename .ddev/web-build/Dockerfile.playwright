@@ -1,0 +1,8 @@
+# Chromium and its system libraries for the Playwright e2e tests
+# (ddev verify). Keep the version in step with @playwright/test in
+# example/package.json.
+ARG PLAYWRIGHT_VERSION=1.64.1
+ENV PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
+RUN npx -y playwright@${PLAYWRIGHT_VERSION} install --with-deps chromium \
+    && chmod -R a+rwx /opt/ms-playwright \
+    && rm -rf /root/.npm
