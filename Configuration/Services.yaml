@@ -10,6 +10,7 @@ services:
       - '../Classes/Event/*'
       - '../Classes/Props/*'
       - '../Classes/Support/*'
+      - '../Classes/Testing/*'
 
   LeonWbr\Inertia\Service\InertiaService:
     public: true

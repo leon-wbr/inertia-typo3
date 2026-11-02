@@ -8,6 +8,8 @@ use LeonWbr\Inertia\Props\AlwaysProp;
 use LeonWbr\Inertia\Props\Deferrable;
 use LeonWbr\Inertia\Props\IgnoreFirstLoad;
 use LeonWbr\Inertia\Props\Mergeable;
+use LeonWbr\Inertia\Props\Onceable;
+use LeonWbr\Inertia\Props\ScrollProp;
 use LeonWbr\Inertia\Support\Header;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -16,12 +18,23 @@ use Psr\Http\Message\ServerRequestInterface;
  * optional and deferred props on the first load, resolves closures and
  * collects the metadata the client needs (deferredProps, mergeProps, …).
  *
- * Follows Inertia\PropsResolver from inertia-laravel 3.x, without the
- * Laravel-only prop types (once, scroll, live and rescued props).
+ * Follows Inertia\PropsResolver from inertia-laravel 3.x, including once
+ * and scroll props, without the Laravel-only live and rescued props.
  */
 final class PropsResolver
 {
     private bool $isPartial;
+
+    private bool $isInertia;
+
+    /** @var list<string> */
+    private array $loadedOnceProps;
+
+    /** @var array<string, array{pageName: string, previousPage: int|string|null, nextPage: int|string|null, currentPage: int|string|null, reset: bool}> */
+    private array $scrollProps = [];
+
+    /** @var array<string, array{prop: string, expiresAt: int|null}> */
+    private array $onceProps = [];
 
     /** @var list<string>|null */
     private ?array $only;
@@ -58,6 +71,8 @@ final class PropsResolver
         $this->only = self::parseHeader($request, Header::PARTIAL_ONLY);
         $this->except = self::parseHeader($request, Header::PARTIAL_EXCEPT);
         $this->resetProps = self::parseHeader($request, Header::RESET) ?? [];
+        $this->isInertia = $request->hasHeader(Header::INERTIA);
+        $this->loadedOnceProps = self::parseHeader($request, Header::EXCEPT_ONCE_PROPS) ?? [];
     }
 
     /**
@@ -108,9 +123,7 @@ final class PropsResolver
                 $value = $this->resolveValue($prop);
             }
 
-            if ($prop instanceof Mergeable && $prop->shouldMerge()) {
-                $this->collectMergeableMetadata($path, $prop);
-            }
+            $this->collectMetadata($prop, $path);
 
             $result[$key] = is_array($value)
                 ? $this->resolveProps($value, $path, $parentWasResolved || !is_array($prop))
@@ -133,21 +146,87 @@ final class PropsResolver
         return !($this->except !== null && $this->matches($path, $this->except));
     }
 
+    /**
+     * Props left out of this response, each with the metadata the client
+     * needs to load or keep it.
+     */
     private function excludeFromInitialResponse(mixed $prop, string $path): bool
     {
-        if (!$prop instanceof IgnoreFirstLoad) {
-            return false;
+        // Optional and deferred props are never sent with the page.
+        if ($prop instanceof IgnoreFirstLoad) {
+            if ($prop instanceof Deferrable && $prop->shouldDefer() && !$this->wasAlreadyLoadedByClient($prop, $path)) {
+                $this->deferredProps[$prop->group()][] = $path;
+            }
+            if ($prop instanceof Mergeable && $prop->shouldMerge()) {
+                $this->collectMergeableMetadata($path, $prop);
+            }
+            if ($prop instanceof Onceable && $prop->shouldResolveOnce()) {
+                $this->collectOnceMetadata($path, $prop);
+            }
+
+            return true;
         }
 
-        if ($prop instanceof Deferrable) {
+        // Scroll props can opt in to deferral.
+        if ($prop instanceof Deferrable && $prop->shouldDefer()) {
             $this->deferredProps[$prop->group()][] = $path;
+            if ($prop instanceof Mergeable && $prop->shouldMerge()) {
+                $this->collectMergeableMetadata($path, $prop);
+            }
+
+            return true;
         }
 
+        // Once props the client already has.
+        if ($this->isInertia && $this->wasAlreadyLoadedByClient($prop, $path)) {
+            $this->collectOnceMetadata($path, $prop);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private function wasAlreadyLoadedByClient(mixed $prop, string $path): bool
+    {
+        return $prop instanceof Onceable
+            && $prop->shouldResolveOnce()
+            && !$prop->shouldBeRefreshed()
+            && in_array($prop->getKey() ?? $path, $this->loadedOnceProps, true);
+    }
+
+    private function collectMetadata(mixed $prop, string $path): void
+    {
         if ($prop instanceof Mergeable && $prop->shouldMerge()) {
             $this->collectMergeableMetadata($path, $prop);
         }
 
-        return true;
+        if ($prop instanceof ScrollProp) {
+            $this->scrollProps[$path] = [
+                ...$prop->metadata($this->request),
+                'reset' => in_array($path, $this->resetProps, true),
+            ];
+        }
+
+        if ($prop instanceof Onceable && $prop->shouldResolveOnce()) {
+            $this->collectOnceMetadata($path, $prop);
+        }
+    }
+
+    private function collectOnceMetadata(string $path, mixed $prop): void
+    {
+        if (!$prop instanceof Onceable || !$prop->shouldResolveOnce()) {
+            return;
+        }
+
+        if ($this->isPartial && !$this->isIncludedInPartialMetadata($path)) {
+            return;
+        }
+
+        $this->onceProps[$prop->getKey() ?? $path] = [
+            'prop' => $path,
+            'expiresAt' => $prop->expiresAt(),
+        ];
     }
 
     private function collectMergeableMetadata(string $path, Mergeable $prop): void
@@ -226,6 +305,8 @@ final class PropsResolver
             'deepMergeProps' => $this->deepMergeProps,
             'matchPropsOn' => $this->matchPropsOn,
             'deferredProps' => $this->deferredProps,
+            'scrollProps' => $this->scrollProps,
+            'onceProps' => $this->onceProps,
         ], static fn(array $value): bool => $value !== []);
     }
 
@@ -234,6 +315,10 @@ final class PropsResolver
      */
     private function resolveValue(mixed $value): mixed
     {
+        if ($value instanceof ScrollProp) {
+            $value->configureMergeIntent($this->request);
+        }
+
         if ($value instanceof \Closure || (is_object($value) && is_callable($value))) {
             $value = $value($this->request);
         }
@@ -248,8 +333,10 @@ final class PropsResolver
     private static function isPropType(mixed $value): bool
     {
         return $value instanceof AlwaysProp
+            || $value instanceof Deferrable
             || $value instanceof IgnoreFirstLoad
-            || $value instanceof Mergeable;
+            || $value instanceof Mergeable
+            || $value instanceof Onceable;
     }
 
     /**

@@ -1,0 +1,11 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  LeonWbr\Inertia\Tests\Functional\Fixtures\Extensions\InertiaTest\Classes\:
+    resource: '../Classes/*'
+
+  LeonWbr\Inertia\Tests\Functional\Fixtures\Extensions\InertiaTest\Classes\FormMiddleware:
+    public: true

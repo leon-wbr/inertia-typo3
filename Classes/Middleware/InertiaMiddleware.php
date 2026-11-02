@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace LeonWbr\Inertia\Middleware;
 
+use LeonWbr\Inertia\Props\OnceProp;
 use LeonWbr\Inertia\Service\InertiaService;
 use LeonWbr\Inertia\Support\Header;
 use Psr\Http\Message\ResponseInterface;
@@ -28,6 +29,11 @@ class InertiaMiddleware implements MiddlewareInterface
 
     protected string $rootView = 'App';
 
+    /**
+     * Send every message per field instead of the first one.
+     */
+    protected bool $withAllErrors = false;
+
     public function __construct(
         protected readonly InertiaService $inertia,
         protected readonly ExtensionConfiguration $extensionConfiguration,
@@ -40,7 +46,13 @@ class InertiaMiddleware implements MiddlewareInterface
         $this->inertia->setRequest($request);
         $this->inertia->setVersion($this->version($request));
         $this->inertia->setRootView($this->rootView);
+        $this->inertia->share([
+            'errors' => $this->inertia->always(fn(ServerRequestInterface $request): object => $this->resolveValidationErrors($request)),
+        ]);
         $this->inertia->share($this->share($request));
+        foreach ($this->shareOnce($request) as $key => $value) {
+            $this->inertia->shareOnce($key, $value);
+        }
 
         $isInertia = $request->hasHeader(Header::INERTIA);
 
@@ -121,6 +133,41 @@ class InertiaMiddleware implements MiddlewareInterface
     public function share(ServerRequestInterface $request): array
     {
         return [];
+    }
+
+    /**
+     * Props shared once: the client keeps them across visits, and the
+     * server skips them while it does.
+     *
+     * @return array<string, callable|OnceProp>
+     */
+    public function shareOnce(ServerRequestInterface $request): array
+    {
+        return [];
+    }
+
+    /**
+     * The `errors` prop: validation errors flashed with
+     * InertiaService::withErrors(), cleared once they are read. With an
+     * X-Inertia-Error-Bag header, the default bag is sent under that name,
+     * as inertia-laravel does.
+     */
+    public function resolveValidationErrors(ServerRequestInterface $request): object
+    {
+        $bags = array_map(
+            fn(array $fields): object => (object)array_map(
+                fn(array $messages): string|array => $this->withAllErrors ? $messages : (string)reset($messages),
+                $fields,
+            ),
+            $this->inertia->pullErrors($request),
+        );
+
+        $errorBag = $request->getHeaderLine(Header::ERROR_BAG);
+        if (isset($bags['default']) && $errorBag !== '') {
+            return (object)[$errorBag => $bags['default']];
+        }
+
+        return $bags['default'] ?? (object)$bags;
     }
 
     /**

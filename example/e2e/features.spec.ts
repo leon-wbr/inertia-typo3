@@ -15,7 +15,7 @@ test("deferred props load right after the page", async ({ page }) => {
   expect(data.deferredProps).toEqual({ default: ["stats"] });
 
   const response = await deferred;
-  expect(Object.keys((await response.json()).props)).toEqual(["stats"]);
+  expect(Object.keys((await response.json()).props).sort()).toEqual(["errors", "stats"]);
   await expect(page.getByTestId("stats")).toContainText("1 content elements");
 });
 
@@ -30,7 +30,10 @@ test("optional props are only sent when asked for", async ({ page }) => {
   await page.getByRole("button", { name: "Load details" }).click();
   const response = await reload;
 
-  expect((await response.json()).props).toEqual({ details: { requestedWith: "details" } });
+  expect((await response.json()).props).toEqual({
+    errors: {},
+    details: { requestedWith: "details" },
+  });
   await expect(page.getByTestId("details")).toHaveText("Loaded with: details");
 });
 

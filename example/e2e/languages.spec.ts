@@ -13,6 +13,7 @@ test("the second language has its own pages, menu and content", async ({ page })
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Funktionen");
   await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link")).toHaveText([
     "Funktionen",
+    "Artikel",
     "Kontakt",
   ]);
 

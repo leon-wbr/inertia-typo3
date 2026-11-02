@@ -10,9 +10,10 @@ use Psr\Http\Message\ServerRequestInterface;
  * A prop that is left out of the first page load and announced in
  * `deferredProps`, so the client fetches it right after rendering.
  */
-final class DeferProp implements IgnoreFirstLoad, Deferrable, Mergeable
+final class DeferProp implements IgnoreFirstLoad, Deferrable, Mergeable, Onceable
 {
     use MergesProps;
+    use ResolvesOnce;
 
     /** @var callable */
     private $callback;
@@ -22,6 +23,11 @@ final class DeferProp implements IgnoreFirstLoad, Deferrable, Mergeable
         private readonly string $group = 'default',
     ) {
         $this->callback = $callback;
+    }
+
+    public function shouldDefer(): bool
+    {
+        return true;
     }
 
     public function group(): string

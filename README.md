@@ -10,8 +10,13 @@ It follows the official [inertia-laravel](https://github.com/inertiajs/inertia-l
 
 - The Inertia 3 protocol: the `<script type="application/json">` page element, JSON responses for Inertia visits, asset versioning (409 with `X-Inertia-Location`), 303 redirects after `PUT`, `PATCH` and `DELETE`, and redirects with fragments (`X-Inertia-Redirect`).
 - Partial reloads (`only`, `except`, nested paths), with deferred, optional, always and merge props, including deep merge, prepend and `matchOn`.
-- Shared props, resolved lazily when a page is rendered.
+- Validation errors and error bags: flashed across the redirect in the TYPO3 frontend session (anonymous visitors included), always shared as the `errors` prop, scoped by `X-Inertia-Error-Bag`, and cleared once read.
+- Flash data, sent once as the page object's `flash`.
+- Once props (`onceProps`, `X-Inertia-Except-Once-Props`), with custom keys, expiry and refresh.
+- Scroll props for `<InfiniteScroll>` (`scrollProps`, the merge intent header), from TYPO3's core paginators or plain arrays.
+- Shared props, resolved lazily when a page is rendered, and shared once props.
 - History encryption and clearing flags.
+- Testing helpers for TYPO3 functional tests, like inertia-laravel's `assertInertia()`.
 - JSON request bodies parsed for Inertia forms.
 - A page plugin that renders TYPO3 pages with their content elements, through the core Record API, with TypoScript-rendered HTML as fallback.
 - A navigation builder that respects translations, hidden pages, start and end times, access groups and workspaces.
@@ -65,7 +70,7 @@ runs everything from scratch and exits non-zero on the first failure:
 3. PHPUnit unit and functional tests (TYPO3 testing framework, SQLite);
 4. ESLint, Prettier and the TypeScript 7 typecheck;
 5. a Vite production build;
-6. Playwright end-to-end tests against the site serving that build: first load, Inertia navigation, asset version mismatch, form redirects, query strings, partial reloads, deferred, optional and merge props, and the second language.
+6. Playwright end-to-end tests against the site serving that build: first load, Inertia navigation, asset version mismatch, form redirects with validation errors and flash data, query strings, partial reloads, deferred, optional, merge and once props, infinite scroll, and the second language.
 
 GitHub Actions runs the same command on every push and pull request. `ddev outdated` lists outdated Composer and pnpm dependencies of the example.
 
@@ -180,7 +185,127 @@ final class ProductPageListener
 }
 ```
 
-In your own Extbase controllers or middlewares, use `InertiaService` directly: `render()`, `location()`, `redirect()`, `share()`, `always()`, `optional()`, `defer()`, `merge()`, `deepMerge()`, `encryptHistory()` and `clearHistory()`.
+In your own Extbase controllers or middlewares, use `InertiaService` directly: `render()`, `location()`, `redirect()`, `share()`, `shareOnce()`, `always()`, `optional()`, `defer()`, `merge()`, `deepMerge()`, `once()`, `scroll()`, `withErrors()`, `flash()`, `encryptHistory()` and `clearHistory()`.
+
+### Forms and validation errors
+
+Handle the submission, flash the errors and redirect back. The errors are stored in the TYPO3 frontend user session, which works for anonymous visitors too (TYPO3 sets its session cookie once something is stored), and arrive on the next page as the `errors` prop:
+
+```php
+public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
+{
+    $name = trim((string)($request->getParsedBody()['name'] ?? ''));
+    if ($name === '') {
+        $this->inertia->withErrors(['name' => 'Please enter your name.']);
+    } else {
+        $this->inertia->flash('success', 'Thanks!');
+    }
+
+    return $this->inertia->redirect($request->getUri()->getPath()); // 303 See Other
+}
+```
+
+- `errors` is shared with every page as an always prop (included in partial reloads), and is `{}` without errors. Errors are cleared once a page has been rendered with them.
+- A field can have a list of messages; the first one is sent. Set `protected bool $withAllErrors = true;` in your middleware subclass to send them all.
+- Error bags: `withErrors($errors, 'login')` stores them in a named bag. A request with `X-Inertia-Error-Bag: contact` (`<Form errorBag="contact">` or `router.post(url, data, { errorBag: 'contact' })`) gets the default bag as `errors.contact`, and the client scopes the form's errors to it.
+
+The example's [contact form](example/packages/sitepackage/Classes/Middleware/ContactFormMiddleware.php) works this way.
+
+### Flash data
+
+`$this->inertia->flash('success', 'Saved')` (or an array) stores data for the next page the client renders. As in inertia-laravel 3.x, it is sent as the page object's `flash` key, not as a prop: read it with `usePage().flash`, or `router.on('flash', …)` for toasts. It is sent once and then cleared. Type it with `flashDataType` in `InertiaConfig`.
+
+### Once props
+
+A once prop is resolved once and then kept by the client: on later visits the client lists the once props it has in `X-Inertia-Except-Once-Props`, and the server skips them.
+
+```php
+$event->addProp('plans', $this->inertia->once(fn() => $this->plans->all()));
+$event->addProp('countries', $this->inertia->once(fn() => $this->countries())->as('countries-v2')->until(3600));
+$event->addProp('stats', $this->inertia->defer(fn() => $this->stats())->once());
+```
+
+- `as()` sets the key the client remembers it by (default: the prop path), `until()` sets an expiry (seconds, a `DateInterval` or a `DateTimeInterface`), `fresh()` sends it anyway.
+- Deferred, optional and merge props can be once props too (`->once()`).
+- Share once props with every page from your middleware's `shareOnce()` (or `InertiaService::shareOnce()`):
+
+  ```php
+  public function shareOnce(ServerRequestInterface $request): array
+  {
+      return ['labels' => fn() => $this->labels->forLanguage($request)];
+  }
+  ```
+
+### Infinite scroll
+
+`scroll()` makes a prop for `<InfiniteScroll>`. The page announces it in `scrollProps` (page name, previous, next and current page), and each page the client loads is appended to the items, or prepended when it scrolls up (`X-Inertia-Infinite-Scroll-Merge-Intent`).
+
+```php
+use TYPO3\CMS\Core\Pagination\ArrayPaginator;
+
+$page = max(1, (int)($request->getQueryParams()['page'] ?? 1));
+
+// From a TYPO3 paginator (ArrayPaginator, QueryBuilderPaginator, Extbase's
+// QueryResultPaginator, …): sent as {data: [...], meta: {currentPage, lastPage}}.
+$event->addProp('articles', $this->inertia->scroll(
+    fn() => new ArrayPaginator($articles, $page, 10),
+));
+
+// From a list and the metadata as an array: sent as {data: [...]}.
+$event->addProp('posts', $this->inertia->scroll($posts, metadata: [
+    'currentPage' => $page,
+    'previousPage' => $page > 1 ? $page - 1 : null,
+    'nextPage' => $hasMore ? $page + 1 : null,
+]));
+```
+
+```tsx
+<InfiniteScroll data="articles">
+  {articles.data.map((article) => <Article key={article.id} {...article} />)}
+</InfiniteScroll>
+```
+
+- The client sends the page in the `page` query parameter. TYPO3 paginators don't know that name: pass `pageName:` if you use another one. Add the parameter to `$GLOBALS['TYPO3_CONF_VARS']['FE']['cacheHash']['excludedParameters']`, as the example sitepackage does, so TYPO3 doesn't ask for a cHash.
+- The items are under `data`; pass another wrapper key as the second argument. A metadata callback (`fn($value) => new ScrollMetadata(...)`) or any `ProvidesScrollMetadata` works too.
+- `->defer()` loads the first page right after the page instead of with it.
+
+### Testing
+
+`LeonWbr\Inertia\Testing\InteractsWithInertia` is a trait for functional tests with typo3/testing-framework, like inertia-laravel's `assertInertia()`:
+
+```php
+use LeonWbr\Inertia\Testing\AssertableInertia;
+use LeonWbr\Inertia\Testing\InteractsWithInertia;
+
+final class ProductsTest extends FunctionalTestCase
+{
+    use InteractsWithInertia;
+
+    #[Test]
+    public function listsProducts(): void
+    {
+        $response = $this->executeFrontendSubRequest($this->inertiaRequest('https://website.local/products'));
+
+        $this->assertInertia($response, fn(AssertableInertia $page) => $page
+            ->component('Products')
+            ->has('products.data', 10)
+            ->where('filters.q', '')
+            ->where('products.data.0.title', fn(string $title): bool => $title !== '')
+            ->missing('internal')
+            ->hasDeferredProps('default', ['stats'])
+            ->hasMergeProps(['products.data'])
+            ->hasOnceProp('categories')
+            ->hasScrollProp('products', ['nextPage' => 2])
+            ->hasNoErrors()
+            ->version(''));
+    }
+}
+```
+
+- `inertiaRequest($uri)` builds an Inertia visit, `inertiaReloadRequest($uri, $component, only: [...], except: [...])` a partial reload.
+- `assertInertia()` reads JSON responses and the page script of a first visit (plain `InternalRequest`).
+- Props are addressed by dot paths. Also: `hasAll()`, `prop()`, `hasError()`, `hasPrependProps()`, `hasDeepMergeProps()`, `hasFlash()`, `missingFlash()`, `url()` and `toArray()`.
+- For a session (errors and flash across a redirect), send the `fe_typo_user` cookie of the POST response with the next request (`withCookieParams()`); see the adapter's [own functional tests](Tests/Functional/Frontend/InertiaFeaturesTest.php).
 
 ### Settings
 
@@ -191,6 +316,42 @@ In your own Extbase controllers or middlewares, use `InertiaService` directly: `
 | `inertia.contentElements.properties` | common `tt_content` fields | Fields sent as `data`; empty sends all |
 
 The extension setting `manifestPath` (default `_assets/vite/.vite/manifest.json`) is the file whose hash is the asset version.
+
+## Compared with inertia-laravel
+
+The adapter follows [inertia-laravel](https://github.com/inertiajs/inertia-laravel) 3.x, the reference server adapter.
+
+| Feature | inertia-laravel 3.x | This adapter |
+|---|---|---|
+| Page object, JSON responses, `<script>` page element | ✓ | ✓ |
+| Asset versioning (409 + `X-Inertia-Location`) | ✓ | ✓ (hash of the Vite manifest) |
+| 303 after `PUT`, `PATCH`, `DELETE`; fragment redirects | ✓ | ✓ |
+| External redirects (`Inertia::location()`) | ✓ | ✓ `location()` |
+| Shared props, lazy closures, dot keys | ✓ | ✓ |
+| Partial reloads (`only`, `except`, nested paths) | ✓ | ✓ |
+| Always, optional, deferred props (groups) | ✓ | ✓ |
+| Merge, prepend, deep merge, `matchOn` | ✓ | ✓ |
+| Once props (`once()`, `as()`, `until()`, `fresh()`, `shareOnce()`) | ✓ | ✓ |
+| Scroll props for `<InfiniteScroll>` | ✓ (Laravel paginators) | ✓ (TYPO3 paginators, arrays) |
+| Validation errors, error bags, `withAllErrors` | ✓ (Laravel session) | ✓ (TYPO3 frontend session) |
+| Flash data (page `flash`) | ✓ | ✓ |
+| History encryption and clearing | ✓ (also as middleware) | ✓ (flags on `InertiaService`) |
+| Testing assertions | ✓ `assertInertia()` | ✓ `InteractsWithInertia`, `AssertableInertia` |
+| Reloads and deferred props in testing assertions (`reloadOnly()`, `loadDeferredProps()`) | ✓ | – build them with `inertiaReloadRequest()` |
+| Server-side rendering | ✓ | – planned |
+| Live props (broadcasting) | ✓ | – |
+| Rescued deferred props (`rescue`) | ✓ | – |
+| `ProvidesInertiaProperties`, `Arrayable` and `Responsable` props | ✓ | – (`JsonSerializable` works) |
+| BigInt preservation, `preserveFragment` across redirects | ✓ | – |
+| Precognition | ✓ | – |
+| Dev tools | ✓ | – |
+| Component existence check in tests | ✓ | – |
+
+## Roadmap
+
+- Server-side rendering, in its own pull request.
+- Rescued deferred props and BigInt preservation, if there is demand.
+- Publishing to Packagist and the TYPO3 Extension Repository.
 
 ## Contributing
 

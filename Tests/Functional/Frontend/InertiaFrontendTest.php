@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace LeonWbr\Inertia\Tests\Functional\Frontend;
 
 use LeonWbr\Inertia\Support\Header;
+use LeonWbr\Inertia\Testing\AssertableInertia;
+use LeonWbr\Inertia\Testing\InteractsWithInertia;
 use LeonWbr\Inertia\Tests\Functional\AbstractFunctionalTestCase;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
@@ -15,6 +17,8 @@ use TYPO3\TestingFramework\Core\Functional\Framework\Frontend\InternalRequest;
  */
 final class InertiaFrontendTest extends AbstractFunctionalTestCase
 {
+    use InteractsWithInertia;
+
     protected function setUp(): void
     {
         // A database page cache, so the test can see what TYPO3 cached.
@@ -25,21 +29,15 @@ final class InertiaFrontendTest extends AbstractFunctionalTestCase
 
     /**
      * @param array<string, string> $headers
-     * @return array<string, mixed>
      */
-    private function inertiaVisit(string $uri, array $headers = []): array
+    private function inertiaVisit(string $uri, array $headers = []): AssertableInertia
     {
-        $request = (new InternalRequest($uri))->withHeader(Header::INERTIA, 'true')->withHeader(Header::VERSION, '');
-        foreach ($headers as $name => $value) {
-            $request = $request->withHeader($name, $value);
-        }
-        $response = $this->executeFrontendSubRequest($request);
+        $response = $this->executeFrontendSubRequest($this->inertiaRequest($uri, '', $headers));
 
         self::assertSame(200, $response->getStatusCode());
         self::assertSame('true', $response->getHeaderLine(Header::INERTIA));
-        self::assertStringStartsWith('application/json', $response->getHeaderLine('Content-Type'));
 
-        return json_decode((string)$response->getBody(), true, 512, JSON_THROW_ON_ERROR);
+        return $this->assertInertia($response);
     }
 
     #[Test]
@@ -54,56 +52,54 @@ final class InertiaFrontendTest extends AbstractFunctionalTestCase
             '#<script data-page="app" type="application/json">(.+?)</script><div id="app"></div>#',
             $html,
         );
-        if (preg_match('#<script data-page="app" type="application/json">(.+?)</script>#', $html, $matches) !== 1) {
-            self::fail('No page script in the HTML');
-        }
-        $page = json_decode($matches[1], true, 512, JSON_THROW_ON_ERROR);
 
-        self::assertSame('Default', $page['component']);
-        self::assertSame('/visible', $page['url']);
-        self::assertSame('', $page['version']);
-        self::assertArrayNotHasKey('rootView', $page);
-        self::assertSame('Visible', $page['props']['title']);
+        $this->assertInertia($response)
+            ->component('Default')
+            ->url('/visible')
+            ->version('')
+            ->where('title', 'Visible')
+            ->hasNoErrors();
+        self::assertArrayNotHasKey('rootView', AssertableInertia::fromResponse($response)->toArray());
     }
 
     #[Test]
     public function inertiaVisitsGetJsonWithContentElements(): void
     {
-        $page = $this->inertiaVisit('https://website.local/visible');
+        $page = $this->inertiaVisit('https://website.local/visible')
+            ->component('Default')
+            ->has('contentElements', 2)
+            ->where('contentElements.0.CType', 'header')
+            ->where('contentElements.1.CType', 'text')
+            ->where('contentElements.1.data.header', 'Text')
+            ->missing('contentElements.1.data.piFlexform');
 
-        self::assertSame('Default', $page['component']);
-        self::assertSame(['header', 'text'], array_column($page['props']['contentElements'], 'CType'));
-        $text = $page['props']['contentElements'][1];
-        self::assertSame('Text', $text['data']['header']);
-        self::assertArrayNotHasKey('piFlexform', $text['data'], 'Only the allowed properties are sent');
-        self::assertStringContainsString('<p>Body</p>', $text['html']);
+        self::assertStringContainsString('<p>Body</p>', (string)$page->prop('contentElements.1.html'));
     }
 
     #[Test]
     public function urlKeepsTheQueryString(): void
     {
-        self::assertSame('/visible?q=typo3&page=2', $this->inertiaVisit('https://website.local/visible?q=typo3&page=2')['url']);
+        $this->inertiaVisit('https://website.local/visible?q=typo3&page=2')->url('/visible?q=typo3&page=2');
     }
 
     #[Test]
-    public function partialReloadsOnlyReturnTheRequestedProps(): void
+    public function partialReloadsOnlyReturnTheRequestedPropsAndTheErrors(): void
     {
-        $page = $this->inertiaVisit('https://website.local/visible', [
-            Header::PARTIAL_COMPONENT => 'Default',
-            Header::PARTIAL_ONLY => 'title',
-        ]);
+        $response = $this->executeFrontendSubRequest(
+            $this->inertiaReloadRequest('https://website.local/visible', 'Default', ['title']),
+        );
 
-        self::assertSame(['title' => 'Visible'], $page['props']);
+        self::assertSame(['errors' => [], 'title' => 'Visible'], $this->assertInertia($response)->prop());
     }
 
     #[Test]
     public function translatedPagesRenderTheirTranslation(): void
     {
-        $page = $this->inertiaVisit('https://website.local/de/sichtbar');
-
-        self::assertSame('Sichtbar', $page['props']['title']);
-        self::assertSame('/de/sichtbar', $page['url']);
-        self::assertSame(['Hallo'], array_column(array_column($page['props']['contentElements'], 'data'), 'header'));
+        $this->inertiaVisit('https://website.local/de/sichtbar')
+            ->url('/de/sichtbar')
+            ->where('title', 'Sichtbar')
+            ->has('contentElements', 1)
+            ->where('contentElements.0.data.header', 'Hallo');
     }
 
     #[Test]
