@@ -1,11 +1,13 @@
 # Example project
 
-A TYPO3 14.3 project that runs the adapter (installed from `..`) with the [Inertia sitepackage](https://github.com/leon-wbr/inertia-sitepackage), and holds the verification suite. The DDEV configuration lives in the repository root; see the [main README](../README.md) for the quickstart.
+A TYPO3 14.3 project that runs the adapter (installed from `..`) with the example sitepackage (installed from `packages/sitepackage`), and holds the verification suite. The DDEV configuration lives in the repository root; see the [main README](../README.md) for the quickstart.
 
 | Path | |
 |---|---|
-| `composer.json` | TYPO3 system extensions the example uses, the adapter, the sitepackage, vite-asset-collector and the PHP test tooling |
-| `package.json` | React, Inertia, Vite and the frontend tooling (pnpm) |
+| `composer.json` | TYPO3 system extensions the example uses, the adapter and the sitepackage (path repositories), vite-asset-collector and the PHP test tooling |
+| `packages/sitepackage` | The sitepackage: root view, shared props, page components and the React frontend. Start your own project from it |
+| `package.json` | React, Inertia, Vite and the frontend tooling (pnpm), for the e2e tests and the sitepackage alike |
+| `eslint.config.js`, `tsconfig.json`, `.prettierrc.json` | One lint, typecheck and format setup for the whole example, sitepackage included |
 | `vite.config.ts` | Upstream vite-plugin-typo3, React, Tailwind, and the dev server flag file |
 | `config/sites/main` | The site, in English (`/`) and German (`/de/`) |
 | `config/system/additional.php` | Database and dev server settings; `settings.php` is written by `typo3 setup` |

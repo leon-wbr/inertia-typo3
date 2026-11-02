@@ -1,0 +1,6 @@
+@import "tailwindcss" source(none);
+@source "./";
+
+#app {
+  @apply flex min-h-screen flex-col;
+}

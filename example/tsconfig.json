@@ -4,7 +4,8 @@
     "lib": ["es2024", "dom", "dom.iterable"],
     "module": "preserve",
     "moduleResolution": "bundler",
-    "types": ["node"],
+    "jsx": "react-jsx",
+    "types": ["node", "vite/client"],
     "strict": true,
     "noEmit": true,
     "skipLibCheck": true,
@@ -14,5 +15,10 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["vite.config.ts", "playwright.config.ts", "e2e/**/*.ts"]
+  "include": [
+    "vite.config.ts",
+    "playwright.config.ts",
+    "e2e/**/*.ts",
+    "packages/*/Resources/Private/src"
+  ]
 }

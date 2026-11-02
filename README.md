@@ -28,7 +28,7 @@ TYPO3 13.4 is no longer supported; the earlier 13.4 proof of concept stays in th
 
 ## Quickstart with DDEV
 
-The repository contains a runnable example project in [`example/`](example/): TYPO3 14.3, the [Inertia sitepackage](https://github.com/leon-wbr/inertia-sitepackage) with a React 19 frontend, an English and a German page tree, and the verification suite.
+The repository contains a runnable example project in [`example/`](example/): TYPO3 14.3, the example sitepackage in [`example/packages/sitepackage`](example/packages/sitepackage/) with a React 19 frontend, an English and a German page tree, and the verification suite.
 
 ```sh
 git clone https://github.com/leon-wbr/inertia-typo3.git
@@ -103,7 +103,30 @@ Then:
 
 3. Set up the client with `createInertiaApp` from `@inertiajs/react` (or the Vue or Svelte adapter).
 
-The [Inertia sitepackage](https://github.com/leon-wbr/inertia-sitepackage) is a complete example.
+### Starting from the example sitepackage
+
+[`example/packages/sitepackage`](example/packages/sitepackage/) is the example's sitepackage and a complete starter: the root view, shared props (site, languages, navigation), page components chosen by frontend layout, content elements rendered by React or from TYPO3's HTML, and a contact form. To start your own project from it:
+
+1. Copy `example/packages/sitepackage` into your project's `packages/` directory, and rename the Composer package, the extension key and the PHP namespace if you like.
+2. Add a path repository for it and require it:
+
+   ```json
+   {
+     "repositories": [
+       { "type": "path", "url": "packages/*" },
+       { "type": "vcs", "url": "https://github.com/leon-wbr/inertia-typo3.git" }
+     ]
+   }
+   ```
+
+   ```sh
+   composer require leon-wbr/inertia:@dev leon-wbr/inertia-sitepackage:@dev
+   ```
+
+3. Add its site set `leon-wbr/inertia-sitepackage` to your site. It pulls in the adapter's set and fluid_styled_content.
+4. Build the frontend in your project root, as the example does: copy `example/package.json`, `example/vite.config.ts`, `example/tsconfig.json` and `example/eslint.config.js` (drop the Playwright parts you don't need), then `pnpm install` and `pnpm build`.
+
+See the [sitepackage README](example/packages/sitepackage/README.md) for what it contains.
 
 ## Usage
 

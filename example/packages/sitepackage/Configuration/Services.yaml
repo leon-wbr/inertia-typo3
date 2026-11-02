@@ -1,0 +1,14 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  LeonWbr\InertiaSitepackage\:
+    resource: "../Classes/*"
+
+  LeonWbr\InertiaSitepackage\Middleware\InertiaMiddleware:
+    public: true
+
+  LeonWbr\InertiaSitepackage\Middleware\ContactFormMiddleware:
+    public: true
