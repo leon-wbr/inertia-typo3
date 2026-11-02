@@ -1,0 +1,29 @@
+{
+  "name": "leon-wbr/inertia-sitepackage",
+  "description": "Example TYPO3 sitepackage with an Inertia.js, React and Vite frontend.",
+  "type": "typo3-cms-extension",
+  "require": {
+    "php": "^8.2",
+    "leon-wbr/inertia": "*",
+    "praetorius/vite-asset-collector": "^1.18.4",
+    "typo3/cms-core": "^14.3.10",
+    "typo3/cms-fluid-styled-content": "^14.3.10",
+    "typo3/cms-frontend": "^14.3.10"
+  },
+  "autoload": {
+    "psr-4": {
+      "LeonWbr\\InertiaSitepackage\\": "Classes/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Leon Weber",
+      "email": "lw.leonweber@gmail.com"
+    }
+  ],
+  "extra": {
+    "typo3/cms": {
+      "extension-key": "inertia_sitepackage"
+    }
+  }
+}

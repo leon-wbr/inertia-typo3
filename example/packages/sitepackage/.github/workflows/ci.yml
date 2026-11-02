@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: ESLint, Prettier, TypeScript
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm verify
+
+  php:
+    name: PHP ${{ matrix.php }} syntax
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ["8.2", "8.5"]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: shivammathur/setup-php@2.40.0
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: php -l
+        run: find Classes Configuration ext_localconf.php -name '*.php' -print0 | xargs -0 -n1 php -l

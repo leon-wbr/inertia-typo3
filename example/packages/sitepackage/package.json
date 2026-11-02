@@ -1,0 +1,36 @@
+{
+  "name": "inertia-sitepackage",
+  "private": true,
+  "type": "module",
+  "description": "Frontend tooling for the sitepackage. The TYPO3 project that installs it provides the runtime dependencies and runs Vite.",
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": ">=26.13.0"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "verify": "pnpm lint && pnpm format:check && pnpm typecheck"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@inertiajs/core": "^3.11.0",
+    "@inertiajs/react": "^3.11.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.14.0",
+    "html-react-parser": "^6.1.9",
+    "prettier": "^3.9.10",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "^7.0.2",
+    "typescript-eslint": "^8.72.1",
+    "vite": "^8.3.5"
+  }
+}

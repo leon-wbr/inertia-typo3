@@ -1,0 +1,5 @@
+name: leon-wbr/inertia-sitepackage
+label: Inertia Sitepackage
+dependencies:
+  - leon-wbr/inertia
+  - typo3/fluid-styled-content

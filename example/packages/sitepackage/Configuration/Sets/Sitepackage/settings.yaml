@@ -1,0 +1,6 @@
+inertia:
+  contentElements:
+    # Rendered by React components (Resources/Private/src/components/CTypes),
+    # so TYPO3 skips their HTML fallback.
+    typedTypes:
+      - header
