@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+## Description: Run the verification suite: setup, PHP CS Fixer, PHPStan, PHPUnit, ESLint, Prettier, TypeScript, production build, Playwright e2e
+## Usage: verify
+## Example: "ddev verify"
+
+exec /var/www/html/Build/Scripts/verify.sh "$@"

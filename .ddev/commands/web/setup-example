@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+## Description: Install dependencies and (re)create the example site: database, TYPO3 setup, pages and content
+## Usage: setup-example
+## Example: "ddev setup-example"
+
+exec /var/www/html/Build/Scripts/setup-example.sh "$@"

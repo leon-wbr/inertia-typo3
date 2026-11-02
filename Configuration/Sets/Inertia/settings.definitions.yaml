@@ -1,0 +1,36 @@
+categories:
+  inertia:
+    label: Inertia
+
+settings:
+  inertia.component:
+    label: Page component
+    description: Name of the frontend page component that renders TYPO3 pages.
+    category: inertia
+    type: string
+    default: Default
+
+  inertia.contentElements.typedTypes:
+    label: Content types with a frontend component
+    description: CTypes the frontend renders itself. Their TypoScript HTML is not rendered or sent.
+    category: inertia
+    type: stringlist
+    default: []
+
+  inertia.contentElements.properties:
+    label: Content element properties
+    description: Database fields of tt_content sent as props. Leave empty to send all fields.
+    category: inertia
+    type: stringlist
+    default:
+      - uid
+      - pid
+      - header
+      - header_layout
+      - header_link
+      - subheader
+      - bodytext
+      - image
+      - assets
+      - bullets_type
+      - sys_language_uid

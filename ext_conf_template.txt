@@ -1,2 +1,2 @@
-# cat=basic; type=string; label=Manifest Path: Path to the manifest file
+# cat=basic; type=string; label=Manifest path: Vite manifest used for the asset version, relative to the public directory or as EXT: path
 manifestPath = _assets/vite/.vite/manifest.json

@@ -1,0 +1,28 @@
+rootPageId: 1
+base: /
+websiteTitle: 'TYPO3 + Inertia'
+dependencies:
+  - leon-wbr/inertia-sitepackage
+languages:
+  -
+    languageId: 0
+    title: English
+    navigationTitle: English
+    enabled: true
+    base: /
+    locale: en_US.UTF-8
+    flag: us
+  -
+    languageId: 1
+    title: Deutsch
+    navigationTitle: Deutsch
+    enabled: true
+    base: /de/
+    locale: de_DE.UTF-8
+    flag: de
+    fallbackType: strict
+routes:
+  -
+    route: robots.txt
+    type: staticText
+    content: "User-agent: *\nDisallow:\n"

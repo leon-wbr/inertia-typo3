@@ -1,0 +1,59 @@
+{
+  "name": "leon-wbr/inertia-example",
+  "description": "Runnable TYPO3 project for the Inertia adapter: example site, verification suite and DDEV setup.",
+  "type": "project",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "repositories": [
+    {
+      "type": "path",
+      "url": "..",
+      "options": {
+        "symlink": true
+      }
+    },
+    {
+      "type": "vcs",
+      "url": "https://github.com/leon-wbr/inertia-sitepackage.git",
+      "no-api": true
+    }
+  ],
+  "require": {
+    "php": "^8.2",
+    "leon-wbr/inertia": "*@dev",
+    "leon-wbr/inertia-sitepackage": "dev-feat/typo3-14-inertia-3",
+    "praetorius/vite-asset-collector": "^1.18.4",
+    "typo3/cms-backend": "^14.3.10",
+    "typo3/cms-core": "^14.3.10",
+    "typo3/cms-extbase": "^14.3.10",
+    "typo3/cms-fluid": "^14.3.10",
+    "typo3/cms-fluid-styled-content": "^14.3.10",
+    "typo3/cms-frontend": "^14.3.10",
+    "typo3/cms-install": "^14.3.10"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.95.27",
+    "phpstan/phpstan": "^2.3.4",
+    "phpunit/phpunit": "^13.4.6",
+    "saschaegerer/phpstan-typo3": "^3.1.0",
+    "typo3/testing-framework": "^9.7.0"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "LeonWbr\\Inertia\\Tests\\": "../Tests/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "typo3/class-alias-loader": true,
+      "typo3/cms-composer-installers": true,
+      "phpstan/extension-installer": true
+    },
+    "sort-packages": true
+  },
+  "extra": {
+    "typo3/cms": {
+      "web-dir": "public"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+rootPageId: 1
+base: 'https://website.local/'
+websiteTitle: 'Test site'
+dependencies:
+  - leon-wbr/inertia
+  - typo3/fluid-styled-content
+languages:
+  -
+    languageId: 0
+    title: English
+    enabled: true
+    base: /
+    locale: en_US.UTF-8
+  -
+    languageId: 1
+    title: Deutsch
+    enabled: true
+    base: /de/
+    locale: de_DE.UTF-8
+    fallbackType: strict

@@ -1,12 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 use LeonWbr\Inertia\Middleware\InertiaMiddleware;
 
 return [
-  'frontend' => [
-    'inertia-middleware' => [
-      'target' => InertiaMiddleware::class,
-      'before' => ['typo3/cms-frontend/page-resolver']
+    'frontend' => [
+        'leon-wbr/inertia' => [
+            'target' => InertiaMiddleware::class,
+            'after' => [
+                'typo3/cms-frontend/site',
+            ],
+            'before' => [
+                'typo3/cms-frontend/page-resolver',
+            ],
+        ],
     ],
-  ],
 ];

@@ -1,34 +1,40 @@
 <?php
 
+declare(strict_types=1);
+
 namespace LeonWbr\Inertia\ViewHelpers;
 
-use LeonWbr\Inertia\Traits\InertiaTrait;
-use Psr\Http\Message\ServerRequestInterface;
 use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper;
 
-/** 
- * @todo Reimplement and test. 
- * @see LeonWbr\Inertia\Service\InertiaService->render()
- * @see ../../Resources/Private/Templates/App.html
+/**
+ * Renders the Inertia root element with the page object, in the markup of
+ * inertia-laravel 3.x (Inertia\Directive): a JSON script element followed
+ * by the mount point.
+ *
+ *     <inertia:app page="{page}" />
+ *
+ * renders
+ *
+ *     <script data-page="app" type="application/json">{…}</script><div id="app"></div>
  */
 final class AppViewHelper extends AbstractViewHelper
 {
-  use InertiaTrait;
+    protected $escapeOutput = false;
 
-  protected $escapeOutput = false;
-
-  public function render()
-  {
-    $request = null;
-    if ($this->renderingContext->hasAttribute(ServerRequestInterface::class)) {
-      $request = $this->renderingContext->getAttribute(ServerRequestInterface::class);
+    public function initializeArguments(): void
+    {
+        $this->registerArgument('page', 'array', 'The Inertia page object', true);
+        $this->registerArgument('id', 'string', 'Id of the mount element', false, 'app');
     }
 
-    $this->getInertiaFromRequest($request);
+    public function render(): string
+    {
+        $id = htmlspecialchars((string)$this->arguments['id'], ENT_QUOTES | ENT_HTML5);
+        $json = json_encode(
+            $this->arguments['page'],
+            JSON_HEX_TAG | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR,
+        );
 
-    $id = $this->inertia->getRootView();
-    $page = [];
-
-    return '<div id="' . $id . '" data-page="' . json_encode($page, JSON_THROW_ON_ERROR) . '"></div>';
-  }
+        return '<script data-page="' . $id . '" type="application/json">' . $json . '</script><div id="' . $id . '"></div>';
+    }
 }
