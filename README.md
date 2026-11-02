@@ -319,7 +319,7 @@ The extension setting `manifestPath` (default `_assets/vite/.vite/manifest.json`
 
 ## Compared with inertia-laravel
 
-The adapter follows [inertia-laravel](https://github.com/inertiajs/inertia-laravel) 3.x, the reference server adapter.
+The adapter follows [inertia-laravel](https://github.com/inertiajs/inertia-laravel) 3.x, the reference server adapter. [TODO.md](TODO.md) has the full audit against the latest Inertia releases: every feature with its source, status, tests and priority, the next steps, and how the list is kept in sync.
 
 | Feature | inertia-laravel 3.x | This adapter |
 |---|---|---|

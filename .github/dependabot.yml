@@ -1,0 +1,24 @@
+# Bumps the example's Inertia client. Each bump runs `ddev verify`, whose
+# parity step fails if the new @inertiajs/core uses a header or page field
+# that Build/Parity/parity.json doesn't list. See TODO.md, "Keeping this
+# list in sync".
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /example
+    schedule:
+      interval: weekly
+    allow:
+      - dependency-name: '@inertiajs/*'
+    groups:
+      inertia:
+        patterns:
+          - '@inertiajs/*'
+    commit-message:
+      prefix: chore
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore

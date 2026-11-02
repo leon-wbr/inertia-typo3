@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+## Description: Inertia parity check: "local" (installed client vs Build/Parity/parity.json, offline) or "upstream" (latest releases, network)
+## Usage: parity [local|upstream|record] [flags]
+## Example: "ddev parity local" or "ddev parity upstream"
+
+exec node /var/www/html/Build/Scripts/parity.mjs "${@:-local}"
