@@ -35,6 +35,10 @@ vendor/bin/phpunit --configuration "$ROOT/Build/phpunit/UnitTests.xml"
 step "PHPUnit: functional tests"
 vendor/bin/phpunit --configuration "$ROOT/Build/phpunit/FunctionalTests.xml"
 
+step "Inertia parity (Build/Parity/parity.json against the installed @inertiajs/core)"
+node --test "$ROOT/Build/Scripts/"
+node "$ROOT/Build/Scripts/parity.mjs" local
+
 step "ESLint"
 pnpm lint
 

@@ -1,0 +1,61 @@
+name: Inertia parity
+
+# Weekly: has Inertia released anything this adapter isn't audited against?
+# Compares the latest inertiajs/inertia-laravel and @inertiajs/core with the
+# versions and surfaces in Build/Parity/parity.json, and keeps one tracking
+# issue open while they differ. What to do then: TODO.md, "Keeping this list
+# in sync".
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: inertia-parity
+
+jobs:
+  upstream:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+
+      - name: Self-test
+        run: node --test Build/Scripts/
+
+      - name: Compare with the latest releases
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          node Build/Scripts/parity.mjs upstream --report="$RUNNER_TEMP/parity.md"
+          code=$?
+          set -e
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          # 0 in sync, 1 drift, anything else is an error
+          [ "$code" -le 1 ]
+
+      - name: Open or update the tracking issue
+        if: steps.check.outputs.code == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create inertia-parity --color 5c2d91 \
+            --description 'Upstream Inertia changes to audit' 2>/dev/null || true
+          number=$(gh issue list --label inertia-parity --state open --json number --jq '.[0].number')
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --body-file "$RUNNER_TEMP/parity.md"
+            echo "Updated #$number"
+          else
+            gh issue create --title 'Inertia upstream changed: audit parity' \
+              --label inertia-parity --body-file "$RUNNER_TEMP/parity.md"
+          fi
