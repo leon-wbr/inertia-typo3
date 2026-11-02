@@ -8,11 +8,12 @@ It used to live in its own repository, `leon-wbr/inertia-sitepackage`; its histo
 
 ## What it contains
 
-- **Shared props** for every page: site title, home link, languages (with the current page in each language) and the navigation. The navigation comes from the adapter's `NavigationService`, which respects translations, hidden pages, start and end times, access groups and workspaces.
+- **Shared props** for every page: site title, home link, languages (with the current page in each language) and the navigation, plus footer labels shared as a once prop (kept by the client, keyed by language). The navigation comes from the adapter's `NavigationService`, which respects translations, hidden pages, start and end times, access groups and workspaces.
 - **Page components** in `Resources/Private/src/Pages`, chosen by the page's frontend layout (`pages.layout`):
   - `Default`: the page's content elements;
   - `Features` (layout 1): deferred, optional and merge props;
-  - `Contact` (layout 2): a form submitted with Inertia's `<Form>`, answered with a 303 redirect.
+  - `Contact` (layout 2): a form submitted with Inertia's `<Form>`, answered with a 303 redirect; validation errors (in the `contact` error bag) and the success message come through the session;
+  - `Articles` (layout 3): `<InfiniteScroll>` over a scroll prop paginated with TYPO3's `ArrayPaginator`.
 - **Content elements**: `header` has a React component. Every other type is rendered from the HTML TYPO3 produces (fluid_styled_content), with internal links turned into Inertia links.
 - **Root view** `Resources/Private/Templates/App.html`: the Inertia page script plus the Vite entry point via [vite-asset-collector](https://github.com/s2b/vite-asset-collector).
 

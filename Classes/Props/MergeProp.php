@@ -10,9 +10,10 @@ use Psr\Http\Message\ServerRequestInterface;
  * A prop whose value the client merges with the value it already has, for
  * example to append the next page of a list.
  */
-final class MergeProp implements Mergeable
+final class MergeProp implements Mergeable, Onceable
 {
     use MergesProps;
+    use ResolvesOnce;
 
     public function __construct(
         private readonly mixed $value,

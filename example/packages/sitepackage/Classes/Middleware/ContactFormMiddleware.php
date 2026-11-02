@@ -14,7 +14,9 @@ use TYPO3\CMS\Frontend\Page\PageInformation;
 
 /**
  * Handles the example contact form on pages with the frontend layout
- * "Contact" (layout 2), the Inertia way: validate, then redirect back.
+ * "Contact" (layout 2), the Inertia way: validate, flash the validation
+ * errors or a success message to the session, and redirect back. The next
+ * page gets them as the `errors` prop and the page's `flash` data.
  *
  * POST answers with 303 See Other. PUT answers with a plain 302, which the
  * Inertia middleware turns into a 303 so the client follows up with GET.
@@ -41,8 +43,12 @@ final class ContactFormMiddleware implements MiddlewareInterface
 
         $body = $request->getParsedBody();
         $name = trim(is_array($body) ? (string)($body['name'] ?? '') : '');
-        $query = $name === '' ? ['error' => 'name'] : ['sent' => mb_substr($name, 0, 100)];
-        $target = $request->getUri()->getPath() . '?' . http_build_query($query);
+        if ($name === '') {
+            $this->inertia->withErrors(['name' => 'Please enter your name.']);
+        } else {
+            $this->inertia->flash('success', sprintf('Thanks, %s!', mb_substr($name, 0, 100)));
+        }
+        $target = $request->getUri()->getPath();
 
         return $method === 'POST'
             ? $this->inertia->redirect($target)

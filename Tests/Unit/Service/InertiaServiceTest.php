@@ -6,6 +6,7 @@ namespace LeonWbr\Inertia\Tests\Unit\Service;
 
 use LeonWbr\Inertia\Service\InertiaService;
 use LeonWbr\Inertia\Support\Header;
+use LeonWbr\Inertia\Support\SessionKey;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use TYPO3\CMS\Core\Http\RedirectResponse;
@@ -13,6 +14,7 @@ use TYPO3\CMS\Core\Http\ServerRequest;
 use TYPO3\CMS\Core\View\ViewFactoryData;
 use TYPO3\CMS\Core\View\ViewFactoryInterface;
 use TYPO3\CMS\Core\View\ViewInterface;
+use TYPO3\CMS\Frontend\Authentication\FrontendUserAuthentication;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 final class InertiaServiceTest extends UnitTestCase
@@ -167,5 +169,57 @@ final class InertiaServiceTest extends UnitTestCase
 
         self::assertSame(303, $response->getStatusCode());
         self::assertSame('/thanks', $response->getHeaderLine('Location'));
+    }
+
+    #[Test]
+    public function errorsAreKeptPerBagUntilTheyArePulled(): void
+    {
+        $inertia = $this->service();
+        $inertia->withErrors(['name' => 'Required.', 'email' => ['Invalid.', 'Taken.']]);
+        $inertia->withErrors(['code' => 'Wrong.'], 'login');
+
+        self::assertSame(
+            ['default' => ['name' => ['Required.'], 'email' => ['Invalid.', 'Taken.']], 'login' => ['code' => ['Wrong.']]],
+            $inertia->pullErrors(),
+        );
+        self::assertSame([], $inertia->getErrors());
+    }
+
+    #[Test]
+    public function errorsAndFlashLiveInTheFrontendUserSession(): void
+    {
+        $user = $this->createStub(FrontendUserAuthentication::class);
+        /** @var \ArrayObject<string, mixed> $session */
+        $session = new \ArrayObject();
+        $user->method('getSessionData')->willReturnCallback(static fn(string $key): mixed => $session[$key] ?? null);
+        $user->method('setSessionData')->willReturnCallback(static function (string $key, mixed $value) use ($session): void {
+            if ($value === null) {
+                unset($session[$key]);
+            } else {
+                $session[$key] = $value;
+            }
+        });
+
+        $inertia = $this->service();
+        $inertia->setRequest($this->inertiaRequest()->withAttribute('frontend.user', $user));
+        $inertia->withErrors(['name' => 'Required.']);
+        $inertia->flash('status', 'Saved');
+
+        self::assertSame(
+            [SessionKey::ERRORS => ['default' => ['name' => ['Required.']]], SessionKey::FLASH_DATA => ['status' => 'Saved']],
+            $session->getArrayCopy(),
+        );
+    }
+
+    #[Test]
+    public function flashDataIsSentOnceWithThePageObject(): void
+    {
+        $inertia = $this->service();
+        $inertia->flash('status', 'Saved');
+        $inertia->flash(['level' => 'success']);
+
+        $page = $inertia->page('Page', [], $this->inertiaRequest());
+        self::assertSame(['status' => 'Saved', 'level' => 'success'], $page['flash']);
+        self::assertArrayNotHasKey('flash', $inertia->page('Page', [], $this->inertiaRequest()));
     }
 }

@@ -223,4 +223,86 @@ final class InertiaMiddlewareTest extends UnitTestCase
         self::assertSame('App', $this->inertia->getRootView());
         self::assertSame($this->inertia, $handler->request?->getAttribute('inertia'));
     }
+
+    /**
+     * @param array<string, string> $headers
+     * @return array<string, mixed>
+     */
+    private function sharedErrors(array $headers = []): array
+    {
+        $handler = $this->handler(fn(ServerRequestInterface $request): ResponseInterface => $this->inertia->render('Page', [], $request));
+        $response = $this->middleware()->process($this->request('GET', [Header::INERTIA => 'true', Header::VERSION => ''] + $headers), $handler);
+        $page = json_decode((string)$response->getBody(), true, 512, JSON_THROW_ON_ERROR);
+
+        return $page['props']['errors'];
+    }
+
+    #[Test]
+    public function errorsAreAlwaysSharedAsAnObject(): void
+    {
+        $handler = $this->handler(fn(ServerRequestInterface $request): ResponseInterface => $this->inertia->render('Page', [], $request));
+        $response = $this->middleware()->process($this->request('GET', [Header::INERTIA => 'true', Header::VERSION => '']), $handler);
+
+        self::assertStringContainsString('"errors":{}', (string)$response->getBody());
+    }
+
+    #[Test]
+    public function errorsAreSharedWithTheFirstMessagePerFieldAndThenCleared(): void
+    {
+        $this->inertia->withErrors(['name' => ['Required.', 'Too short.']]);
+
+        self::assertSame(['name' => 'Required.'], $this->sharedErrors());
+        self::assertSame([], $this->sharedErrors());
+    }
+
+    #[Test]
+    public function errorsAreSharedInPartialReloadsToo(): void
+    {
+        $this->inertia->withErrors(['name' => 'Required.']);
+
+        self::assertSame(['name' => 'Required.'], $this->sharedErrors([
+            Header::PARTIAL_COMPONENT => 'Page',
+            Header::PARTIAL_ONLY => 'other',
+        ]));
+    }
+
+    #[Test]
+    public function theErrorBagHeaderScopesTheDefaultBag(): void
+    {
+        $this->inertia->withErrors(['name' => 'Required.']);
+
+        self::assertSame(['contact' => ['name' => 'Required.']], $this->sharedErrors([Header::ERROR_BAG => 'contact']));
+    }
+
+    #[Test]
+    public function namedBagsAreSentByName(): void
+    {
+        $this->inertia->withErrors(['email' => 'Invalid.'], 'newsletter');
+        $this->inertia->withErrors(['code' => 'Wrong.'], 'login');
+
+        self::assertSame(
+            ['newsletter' => ['email' => 'Invalid.'], 'login' => ['code' => 'Wrong.']],
+            $this->sharedErrors(),
+        );
+    }
+
+    #[Test]
+    public function oncePropsCanBeShared(): void
+    {
+        $extensionConfiguration = $this->createStub(ExtensionConfiguration::class);
+        $extensionConfiguration->method('get')->willReturn('');
+        $middleware = new class ($this->inertia, $extensionConfiguration) extends InertiaMiddleware {
+            public function shareOnce(ServerRequestInterface $request): array
+            {
+                return ['countries' => static fn(): array => ['DE', 'FR']];
+            }
+        };
+        $handler = $this->handler(fn(ServerRequestInterface $request): ResponseInterface => $this->inertia->render('Page', [], $request));
+
+        $response = $middleware->process($this->request('GET', [Header::INERTIA => 'true', Header::VERSION => '', Header::EXCEPT_ONCE_PROPS => 'countries']), $handler);
+        $page = json_decode((string)$response->getBody(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertArrayNotHasKey('countries', $page['props']);
+        self::assertSame(['countries' => ['prop' => 'countries', 'expiresAt' => null]], $page['onceProps']);
+    }
 }

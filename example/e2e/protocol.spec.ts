@@ -38,7 +38,8 @@ test("a partial reload returns only the requested props", async ({ page, request
   });
 
   const data = await response.json();
-  expect(Object.keys(data.props).sort()).toEqual(["pagination", "title"]);
+  // errors is an always prop, as in inertia-laravel: partial reloads include it.
+  expect(Object.keys(data.props).sort()).toEqual(["errors", "pagination", "title"]);
   expect(data.props.title).toBe("Features");
 });
 
@@ -51,5 +52,5 @@ test("PUT redirects become 303 See Other", async ({ page, request }) => {
   });
 
   expect(response.status()).toBe(303);
-  expect(response.headers()["location"]).toBe("/contact?sent=Grace");
+  expect(response.headers()["location"]).toBe("/contact");
 });

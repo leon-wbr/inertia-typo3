@@ -9,8 +9,10 @@ use Psr\Http\Message\ServerRequestInterface;
 /**
  * A prop that is only resolved when a partial reload asks for it.
  */
-final class OptionalProp implements IgnoreFirstLoad
+final class OptionalProp implements IgnoreFirstLoad, Onceable
 {
+    use ResolvesOnce;
+
     /** @var callable */
     private $callback;
 

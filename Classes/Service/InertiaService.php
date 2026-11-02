@@ -7,8 +7,13 @@ namespace LeonWbr\Inertia\Service;
 use LeonWbr\Inertia\Props\AlwaysProp;
 use LeonWbr\Inertia\Props\DeferProp;
 use LeonWbr\Inertia\Props\MergeProp;
+use LeonWbr\Inertia\Props\OnceProp;
 use LeonWbr\Inertia\Props\OptionalProp;
+use LeonWbr\Inertia\Props\ProvidesScrollMetadata;
+use LeonWbr\Inertia\Props\ScrollMetadata;
+use LeonWbr\Inertia\Props\ScrollProp;
 use LeonWbr\Inertia\Support\Header;
+use LeonWbr\Inertia\Support\SessionKey;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Http\HtmlResponse;
@@ -18,6 +23,7 @@ use TYPO3\CMS\Core\Http\Response;
 use TYPO3\CMS\Core\TypoScript\FrontendTypoScript;
 use TYPO3\CMS\Core\View\ViewFactoryData;
 use TYPO3\CMS\Core\View\ViewFactoryInterface;
+use TYPO3\CMS\Frontend\Authentication\FrontendUserAuthentication;
 
 /**
  * Builds Inertia page objects and responses. One instance is shared per
@@ -40,6 +46,14 @@ class InertiaService
     protected bool $clearHistory = false;
 
     protected ?ServerRequestInterface $request = null;
+
+    /**
+     * Session data for requests without a frontend user session (CLI,
+     * tests): it then only lives as long as this service.
+     *
+     * @var array<string, mixed>
+     */
+    protected array $sessionFallback = [];
 
     public function __construct(
         protected readonly ViewFactoryInterface $viewFactory,
@@ -140,6 +154,41 @@ class InertiaService
         return new DeferProp($callback, $group);
     }
 
+    /**
+     * A prop the client keeps: later visits leave it out while the client
+     * still has it. Chain ->as(), ->until() or ->fresh() to change that.
+     */
+    public function once(callable $callback): OnceProp
+    {
+        return new OnceProp($callback);
+    }
+
+    /**
+     * Shares a once prop with every page.
+     */
+    public function shareOnce(string $key, callable $callback): OnceProp
+    {
+        $prop = $callback instanceof OnceProp ? $callback : new OnceProp($callback);
+        $this->share($key, $prop);
+
+        return $prop;
+    }
+
+    /**
+     * A paginated prop for `<InfiniteScroll>`. See ScrollProp for the values
+     * it accepts.
+     *
+     * @param ProvidesScrollMetadata|(callable(mixed): ProvidesScrollMetadata)|array{pageName?: string, previousPage?: int|string|null, nextPage?: int|string|null, currentPage?: int|string|null}|null $metadata
+     */
+    public function scroll(
+        mixed $value,
+        string $wrapper = 'data',
+        ProvidesScrollMetadata|callable|array|null $metadata = null,
+        string $pageName = ScrollMetadata::DEFAULT_PAGE_NAME,
+    ): ScrollProp {
+        return new ScrollProp($value, $wrapper, $metadata, $pageName);
+    }
+
     public function merge(mixed $value): MergeProp
     {
         return new MergeProp($value);
@@ -148,6 +197,106 @@ class InertiaService
     public function deepMerge(mixed $value): MergeProp
     {
         return (new MergeProp($value))->deepMerge();
+    }
+
+    /**
+     * Flashes validation errors to the session, for the page the client is
+     * redirected to: they become its `errors` prop, and are cleared once a
+     * page has been rendered with them. Messages can be a string or a list
+     * of strings per field.
+     *
+     * @param array<string, string|list<string>> $errors
+     */
+    public function withErrors(array $errors, string $bag = 'default'): static
+    {
+        $normalized = [];
+        foreach ($errors as $field => $messages) {
+            $messages = array_map('strval', (array)$messages);
+            if ($messages !== []) {
+                $normalized[(string)$field] = $messages;
+            }
+        }
+
+        $stored = $this->getErrors();
+        $stored[$bag] = array_merge($stored[$bag] ?? [], $normalized);
+        $this->setSessionData(SessionKey::ERRORS, $stored);
+
+        return $this;
+    }
+
+    /**
+     * Flashed validation errors, by error bag, without clearing them.
+     *
+     * @return array<string, array<string, list<string>>>
+     */
+    public function getErrors(?ServerRequestInterface $request = null): array
+    {
+        $errors = $this->getSessionData(SessionKey::ERRORS, $request);
+
+        return is_array($errors) ? $errors : [];
+    }
+
+    /**
+     * Flashed validation errors, by error bag; clears them.
+     *
+     * @return array<string, array<string, list<string>>>
+     */
+    public function pullErrors(?ServerRequestInterface $request = null): array
+    {
+        $errors = $this->getErrors($request);
+        if ($errors !== []) {
+            $this->setSessionData(SessionKey::ERRORS, null, $request);
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Flashes data to the session for the next page the client renders: it
+     * is sent as the page object's `flash` (not as a prop), as in
+     * inertia-laravel 3.x, and read with usePage().flash or router.on('flash').
+     *
+     * @param \BackedEnum|\UnitEnum|string|array<string, mixed> $key
+     */
+    public function flash(\BackedEnum|\UnitEnum|string|array $key, mixed $value = null): static
+    {
+        if (!is_array($key)) {
+            $key = match (true) {
+                $key instanceof \BackedEnum => (string)$key->value,
+                $key instanceof \UnitEnum => $key->name,
+                default => $key,
+            };
+            $key = [$key => $value];
+        }
+
+        $this->setSessionData(SessionKey::FLASH_DATA, array_merge($this->getFlashed(), $key));
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getFlashed(?ServerRequestInterface $request = null): array
+    {
+        $flash = $this->getSessionData(SessionKey::FLASH_DATA, $request);
+
+        return is_array($flash) ? $flash : [];
+    }
+
+    /**
+     * Flashed data; clears it.
+     *
+     * @return array<string, mixed>
+     */
+    public function pullFlashed(?ServerRequestInterface $request = null): array
+    {
+        $flash = $this->getFlashed($request);
+        if ($flash !== []) {
+            $this->setSessionData(SessionKey::FLASH_DATA, null, $request);
+        }
+
+        return $flash;
     }
 
     /**
@@ -172,6 +321,7 @@ class InertiaService
             $metadata,
             $this->clearHistory ? ['clearHistory' => true] : [],
             $this->encryptHistory ? ['encryptHistory' => true] : [],
+            ($flash = $this->pullFlashed($request)) !== [] ? ['flash' => $flash] : [],
         );
     }
 
@@ -238,6 +388,36 @@ class InertiaService
         $query = $uri->getQuery();
 
         return $query === '' ? $path : $path . '?' . $query;
+    }
+
+    /**
+     * The frontend user session works for anonymous visitors too: TYPO3
+     * creates the session (and its cookie) once data is stored in it.
+     */
+    protected function frontendUser(?ServerRequestInterface $request = null): ?FrontendUserAuthentication
+    {
+        $user = ($request ?? $this->request)?->getAttribute('frontend.user');
+
+        return $user instanceof FrontendUserAuthentication ? $user : null;
+    }
+
+    protected function getSessionData(string $key, ?ServerRequestInterface $request = null): mixed
+    {
+        $user = $this->frontendUser($request);
+
+        return $user !== null ? $user->getSessionData($key) : ($this->sessionFallback[$key] ?? null);
+    }
+
+    protected function setSessionData(string $key, mixed $value, ?ServerRequestInterface $request = null): void
+    {
+        $user = $this->frontendUser($request);
+        if ($user !== null) {
+            $user->setSessionData($key, $value);
+        } elseif ($value === null) {
+            unset($this->sessionFallback[$key]);
+        } else {
+            $this->sessionFallback[$key] = $value;
+        }
     }
 
     /**

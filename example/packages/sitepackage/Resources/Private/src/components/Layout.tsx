@@ -2,7 +2,7 @@ import { Head, Link, usePage } from "@inertiajs/react";
 import type { ReactNode } from "react";
 
 export default function Layout({ title, children }: { title: string; children?: ReactNode }) {
-  const { site, navigation } = usePage().props;
+  const { site, navigation, labels } = usePage().props;
 
   return (
     <>
@@ -45,6 +45,15 @@ export default function Layout({ title, children }: { title: string; children?: 
         <h1 className="mb-8 text-4xl font-bold">{title}</h1>
         {children}
       </main>
+      <footer className="border-t border-neutral-200">
+        <p
+          data-testid="labels"
+          className="mx-auto max-w-3xl px-6 py-4 text-sm text-neutral-500"
+          title={`Loaded at ${labels.loadedAt}`}
+        >
+          {labels.footer}
+        </p>
+      </footer>
     </>
   );
 }

@@ -39,6 +39,26 @@ class InertiaMiddleware extends BaseInertiaMiddleware
     }
 
     /**
+     * Shared once: the client keeps the labels while it navigates, and the
+     * server skips them. The key includes the language, so another language
+     * sends its own labels.
+     */
+    public function shareOnce(ServerRequestInterface $request): array
+    {
+        $language = $request->getAttribute('language');
+        $code = $language instanceof SiteLanguage ? $language->getLocale()->getLanguageCode() : 'en';
+
+        return [
+            'labels' => $this->inertia
+                ->once(static fn(): array => [
+                    'footer' => $code === 'de' ? 'Ein Beispiel für TYPO3 und Inertia.' : 'An example of TYPO3 and Inertia.',
+                    'loadedAt' => (new \DateTimeImmutable())->format('H:i:s.u'),
+                ])
+                ->as('labels-' . $code),
+        ];
+    }
+
+    /**
      * @return array{title: string, home: string, language: string, languages: list<array{id: int, title: string, code: string, link: string, active: bool}>}
      */
     protected function site(ServerRequestInterface $request): array

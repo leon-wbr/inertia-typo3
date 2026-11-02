@@ -8,5 +8,5 @@ defined('TYPO3') or die();
 // Inertia page object, so they don't need a cHash.
 $GLOBALS['TYPO3_CONF_VARS']['FE']['cacheHash']['excludedParameters'] = array_values(array_unique(array_merge(
     $GLOBALS['TYPO3_CONF_VARS']['FE']['cacheHash']['excludedParameters'] ?? [],
-    ['page', 'sent', 'error'],
+    ['page'],
 )));

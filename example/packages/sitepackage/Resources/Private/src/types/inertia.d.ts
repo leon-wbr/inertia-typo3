@@ -33,6 +33,10 @@ declare module "@inertiajs/core" {
         languages: SiteLanguage[];
       };
       navigation: NavigationItem[];
+      labels: { footer: string; loadedAt: string };
+    };
+    flashDataType: {
+      success?: string;
     };
   }
 }

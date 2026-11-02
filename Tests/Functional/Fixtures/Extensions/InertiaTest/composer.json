@@ -1,0 +1,14 @@
+{
+  "name": "leon-wbr/inertia-test",
+  "description": "Fixture extension for the adapter's functional tests: a form handler and props for once, scroll and flash.",
+  "type": "typo3-cms-extension",
+  "license": "GPL-3.0-or-later",
+  "require": {
+    "leon-wbr/inertia": "*"
+  },
+  "extra": {
+    "typo3/cms": {
+      "extension-key": "inertia_test"
+    }
+  }
+}

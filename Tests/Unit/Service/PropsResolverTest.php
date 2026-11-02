@@ -7,12 +7,16 @@ namespace LeonWbr\Inertia\Tests\Unit\Service;
 use LeonWbr\Inertia\Props\AlwaysProp;
 use LeonWbr\Inertia\Props\DeferProp;
 use LeonWbr\Inertia\Props\MergeProp;
+use LeonWbr\Inertia\Props\OnceProp;
 use LeonWbr\Inertia\Props\OptionalProp;
+use LeonWbr\Inertia\Props\ScrollMetadata;
+use LeonWbr\Inertia\Props\ScrollProp;
 use LeonWbr\Inertia\Service\PropsResolver;
 use LeonWbr\Inertia\Support\Header;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Http\ServerRequest;
+use TYPO3\CMS\Core\Pagination\ArrayPaginator;
 use TYPO3\TestingFramework\Core\Unit\UnitTestCase;
 
 final class PropsResolverTest extends UnitTestCase
@@ -216,5 +220,180 @@ final class PropsResolverTest extends UnitTestCase
         [$props] = (new PropsResolver($this->request(), 'Page'))->resolve([], ['value' => $value]);
 
         self::assertSame(['value' => ['a' => 1]], $props);
+    }
+
+    #[Test]
+    public function oncePropsAreSentWithTheirMetadata(): void
+    {
+        [$props, $metadata] = (new PropsResolver($this->request(), 'Page'))->resolve([], [
+            'plans' => new OnceProp(static fn(): array => ['basic']),
+        ]);
+
+        self::assertSame(['plans' => ['basic']], $props);
+        self::assertSame(['plans' => ['prop' => 'plans', 'expiresAt' => null]], $metadata['onceProps']);
+    }
+
+    #[Test]
+    public function oncePropsTheClientHasAreLeftOutButKeepTheirMetadata(): void
+    {
+        $request = $this->request([Header::EXCEPT_ONCE_PROPS => 'plans']);
+        [$props, $metadata] = (new PropsResolver($request, 'Page'))->resolve([], [
+            'plans' => new OnceProp(static fn(): never => throw new \RuntimeException('must not be resolved', 1)),
+            'title' => 'Pricing',
+        ]);
+
+        self::assertSame(['title' => 'Pricing'], $props);
+        self::assertSame(['plans' => ['prop' => 'plans', 'expiresAt' => null]], $metadata['onceProps']);
+    }
+
+    #[Test]
+    public function freshOncePropsAreSentAnyway(): void
+    {
+        $request = $this->request([Header::EXCEPT_ONCE_PROPS => 'plans']);
+        [$props] = (new PropsResolver($request, 'Page'))->resolve([], [
+            'plans' => (new OnceProp(static fn(): array => ['basic']))->fresh(),
+        ]);
+
+        self::assertSame(['plans' => ['basic']], $props);
+    }
+
+    #[Test]
+    public function oncePropsAreSentOnFullPageLoadsEvenIfListed(): void
+    {
+        $request = new ServerRequest('https://example.org/page', 'GET', 'php://memory', [Header::EXCEPT_ONCE_PROPS => 'plans']);
+        [$props] = (new PropsResolver($request, 'Page'))->resolve([], [
+            'plans' => new OnceProp(static fn(): array => ['basic']),
+        ]);
+
+        self::assertSame(['plans' => ['basic']], $props);
+    }
+
+    #[Test]
+    public function oncePropsUseTheirCustomKeyAndExpiry(): void
+    {
+        $before = time() * 1000;
+        [, $metadata] = (new PropsResolver($this->request(), 'Page'))->resolve([], [
+            'plans' => (new OnceProp(static fn(): array => []))->as('pricing-plans')->until(60),
+        ]);
+
+        self::assertSame('plans', $metadata['onceProps']['pricing-plans']['prop']);
+        $expiresAt = $metadata['onceProps']['pricing-plans']['expiresAt'];
+        self::assertIsInt($expiresAt);
+        self::assertGreaterThanOrEqual($before + 60_000, $expiresAt);
+        self::assertLessThanOrEqual(time() * 1000 + 60_000, $expiresAt);
+
+        $request = $this->request([Header::EXCEPT_ONCE_PROPS => 'pricing-plans']);
+        [$props] = (new PropsResolver($request, 'Page'))->resolve([], [
+            'plans' => (new OnceProp(static fn(): array => []))->as('pricing-plans'),
+        ]);
+        self::assertSame([], $props);
+    }
+
+    #[Test]
+    public function deferredOncePropsTheClientHasAreNotDeferredAgain(): void
+    {
+        $request = $this->request([Header::EXCEPT_ONCE_PROPS => 'stats']);
+        [, $metadata] = (new PropsResolver($request, 'Page'))->resolve([], [
+            'stats' => (new DeferProp(static fn(): array => []))->once(),
+        ]);
+
+        self::assertArrayNotHasKey('deferredProps', $metadata);
+        self::assertSame(['stats' => ['prop' => 'stats', 'expiresAt' => null]], $metadata['onceProps']);
+    }
+
+    #[Test]
+    public function scrollPropsFromATypo3PaginatorAppendTheirData(): void
+    {
+        $paginator = new ArrayPaginator(range(1, 10), 2, 3);
+        [$props, $metadata] = (new PropsResolver($this->request(), 'Page'))->resolve([], [
+            'items' => new ScrollProp($paginator),
+        ]);
+
+        self::assertSame(['data' => [4, 5, 6], 'meta' => ['currentPage' => 2, 'lastPage' => 4]], $props['items']);
+        self::assertSame(['items.data'], $metadata['mergeProps']);
+        self::assertSame(
+            ['items' => ['pageName' => 'page', 'previousPage' => 1, 'nextPage' => 3, 'currentPage' => 2, 'reset' => false]],
+            $metadata['scrollProps'],
+        );
+    }
+
+    #[Test]
+    public function scrollPropsPrependWhenTheClientAsks(): void
+    {
+        $request = $this->partialRequest('Page', ['items']);
+        $request = $request->withHeader(Header::INFINITE_SCROLL_MERGE_INTENT, 'prepend');
+        [, $metadata] = (new PropsResolver($request, 'Page'))->resolve([], [
+            'items' => new ScrollProp(new ArrayPaginator(range(1, 10), 1, 3)),
+        ]);
+
+        self::assertSame(['items.data'], $metadata['prependProps']);
+        self::assertArrayNotHasKey('mergeProps', $metadata);
+    }
+
+    #[Test]
+    public function scrollPropsTakeAListWithArrayMetadata(): void
+    {
+        [$props, $metadata] = (new PropsResolver($this->request(), 'Page'))->resolve([], [
+            'posts' => new ScrollProp(
+                static fn(): array => [['id' => 7]],
+                'data',
+                ['pageName' => 'p', 'currentPage' => 3, 'previousPage' => 2, 'nextPage' => null],
+            ),
+        ]);
+
+        self::assertSame(['data' => [['id' => 7]]], $props['posts']);
+        self::assertSame(
+            ['pageName' => 'p', 'previousPage' => 2, 'nextPage' => null, 'currentPage' => 3, 'reset' => false],
+            $metadata['scrollProps']['posts'],
+        );
+    }
+
+    #[Test]
+    public function scrollPropsTakeAMetadataCallbackAndACustomWrapper(): void
+    {
+        [$props, $metadata] = (new PropsResolver($this->request(), 'Page'))->resolve([], [
+            'posts' => new ScrollProp(
+                ['items' => ['a'], 'total' => 1],
+                'items',
+                static fn(array $value): ScrollMetadata => new ScrollMetadata('page', null, null, 1),
+            ),
+        ]);
+
+        self::assertSame(['items' => ['a'], 'total' => 1], $props['posts']);
+        self::assertSame(['posts.items'], $metadata['mergeProps']);
+        self::assertSame(1, $metadata['scrollProps']['posts']['currentPage']);
+    }
+
+    #[Test]
+    public function resetScrollPropsAreMarkedAndNotMerged(): void
+    {
+        $request = $this->request([Header::RESET => 'items']);
+        [, $metadata] = (new PropsResolver($request, 'Page'))->resolve([], [
+            'items' => new ScrollProp(new ArrayPaginator(range(1, 10), 1, 3)),
+        ]);
+
+        self::assertTrue($metadata['scrollProps']['items']['reset']);
+        self::assertArrayNotHasKey('mergeProps', $metadata);
+    }
+
+    #[Test]
+    public function deferredScrollPropsAreLoadedAfterThePage(): void
+    {
+        [$props, $metadata] = (new PropsResolver($this->request(), 'Page'))->resolve([], [
+            'items' => (new ScrollProp(static fn(): never => throw new \RuntimeException('must not be resolved', 1)))->defer('feed'),
+        ]);
+
+        self::assertSame([], $props);
+        self::assertSame(['feed' => ['items']], $metadata['deferredProps']);
+        self::assertSame(['items.data'], $metadata['mergeProps']);
+    }
+
+    #[Test]
+    public function scrollPropsWithoutMetadataNeedAPaginator(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionCode(1762300001);
+
+        (new PropsResolver($this->request(), 'Page'))->resolve([], ['items' => new ScrollProp([1, 2])]);
     }
 }
