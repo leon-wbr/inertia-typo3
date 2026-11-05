@@ -75,25 +75,30 @@ class InertiaMiddleware implements MiddlewareInterface
             $response = $e->getResponse();
         }
 
-        $response = $this->withVary($response);
-
         if (!$isInertia) {
-            return $response;
+            return $this->withVary($response);
         }
 
         if ($response->getStatusCode() === 200 && (string)$response->getBody() === '') {
             $response = $this->onEmptyResponse($request);
         }
 
-        if ($response->getStatusCode() === 302 && in_array($request->getMethod(), ['PUT', 'PATCH', 'DELETE'], true)) {
+        if ($response->getStatusCode() === 302 && in_array($request->getMethod(), ['PUT', 'PATCH', 'DELETE', 'QUERY'], true)) {
             $response = $response->withStatus(303);
         }
 
-        if ($this->isRedirect($response) && str_contains($response->getHeaderLine('Location'), '#')) {
+        // A prefetch gets the redirect as it is: the client only follows it
+        // when the prefetched page is visited.
+        if (
+            $this->isRedirect($response)
+            && str_contains($response->getHeaderLine('Location'), '#')
+            && !$this->isPrefetch($request)
+        ) {
             $response = $this->onRedirectWithFragment($response);
         }
 
-        return $response;
+        // Last, so the responses replaced above vary on X-Inertia too.
+        return $this->withVary($response);
     }
 
     /**
@@ -219,6 +224,11 @@ class InertiaMiddleware implements MiddlewareInterface
         }
 
         return is_array($data) ? $request->withParsedBody($data) : $request;
+    }
+
+    protected function isPrefetch(ServerRequestInterface $request): bool
+    {
+        return strtolower($request->getHeaderLine(Header::PURPOSE)) === 'prefetch';
     }
 
     protected function isRedirect(ResponseInterface $response): bool

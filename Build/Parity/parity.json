@@ -7,7 +7,7 @@
   },
   "client": {
     "headers": {
-      "Purpose": "missing",
+      "Purpose": "partial",
       "X-Inertia": "supported",
       "X-Inertia-Error-Bag": "supported",
       "X-Inertia-Except-Once-Props": "supported",
@@ -16,7 +16,7 @@
       "X-Inertia-Partial-Component": "supported",
       "X-Inertia-Partial-Data": "supported",
       "X-Inertia-Partial-Except": "supported",
-      "X-Inertia-Redirect": "partial",
+      "X-Inertia-Redirect": "supported",
       "X-Inertia-Reset": "supported",
       "X-Inertia-Version": "supported",
       "X-Requested-With": "n/a",
