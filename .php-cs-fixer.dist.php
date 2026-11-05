@@ -10,11 +10,15 @@ $finder = (new PhpCsFixer\Finder())
         __DIR__ . '/Build',
         __DIR__ . '/example/packages/sitepackage/Classes',
         __DIR__ . '/example/packages/sitepackage/Configuration',
+        __DIR__ . '/conformance/packages/conformance/Classes',
+        __DIR__ . '/conformance/packages/conformance/Configuration',
     ])
     ->append([
         __DIR__ . '/ext_localconf.php',
         __DIR__ . '/example/config/system/additional.php',
         __DIR__ . '/example/packages/sitepackage/ext_localconf.php',
+        __DIR__ . '/conformance/config/system/additional.php',
+        __DIR__ . '/conformance/packages/conformance/ext_localconf.php',
         __FILE__,
     ]);
 

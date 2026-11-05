@@ -10,6 +10,9 @@ parameters:
     - ext_localconf.php
     # The example's sitepackage
     - example/packages/sitepackage/Classes
+    # The conformance harness's case extension
+    - conformance/packages/conformance/Classes
+    - conformance/packages/conformance/Configuration
   tmpDir: example/var/cache/phpstan
   typo3:
     requestGetAttributeMapping:

@@ -16,6 +16,20 @@ updates:
           - '@inertiajs/*'
     commit-message:
       prefix: chore
+  # The conformance harness pins the official clients; each bump runs the
+  # suite against TYPO3 (.github/workflows/conformance.yml).
+  - package-ecosystem: npm
+    directory: /conformance
+    schedule:
+      interval: weekly
+    allow:
+      - dependency-name: '@inertiajs/*'
+    groups:
+      inertia:
+        patterns:
+          - '@inertiajs/*'
+    commit-message:
+      prefix: chore
   - package-ecosystem: github-actions
     directory: /
     schedule:

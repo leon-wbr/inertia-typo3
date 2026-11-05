@@ -1,0 +1,47 @@
+{
+  "name": "leon-wbr/inertia-conformance-app",
+  "description": "TYPO3 project that runs the official Inertia clients against the adapter (the conformance harness).",
+  "type": "project",
+  "license": "MIT",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "repositories": [
+    {
+      "type": "path",
+      "url": "..",
+      "options": {
+        "symlink": true
+      }
+    },
+    {
+      "type": "path",
+      "url": "packages/*",
+      "options": {
+        "symlink": true
+      }
+    }
+  ],
+  "require": {
+    "php": "^8.2",
+    "leon-wbr/inertia": "*@dev",
+    "leon-wbr/inertia-conformance": "@dev",
+    "typo3/cms-backend": "^14.3.10",
+    "typo3/cms-core": "^14.3.10",
+    "typo3/cms-extbase": "^14.3.10",
+    "typo3/cms-fluid": "^14.3.10",
+    "typo3/cms-frontend": "^14.3.10",
+    "typo3/cms-install": "^14.3.10"
+  },
+  "config": {
+    "allow-plugins": {
+      "typo3/class-alias-loader": true,
+      "typo3/cms-composer-installers": true
+    },
+    "sort-packages": true
+  },
+  "extra": {
+    "typo3/cms": {
+      "web-dir": "public"
+    }
+  }
+}

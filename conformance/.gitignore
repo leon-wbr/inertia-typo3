@@ -1,0 +1,9 @@
+/vendor/
+/node_modules/
+/public/
+/var/
+/config/system/settings.php
+/playwright-report/
+/test-results/
+/matrix.md
+/matrix.json

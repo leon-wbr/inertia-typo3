@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+## Description: Run the conformance harness: the official Inertia clients (React, Vue, Svelte) against TYPO3 and the adapter
+## Usage: conformance [--no-setup] [http|react|vue|svelte ...]
+## Example: "ddev conformance" or "ddev conformance react http" or "ddev conformance --no-setup react"
+
+exec /var/www/html/Build/Scripts/conformance.sh "$@"

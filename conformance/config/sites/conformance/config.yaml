@@ -1,0 +1,14 @@
+rootPageId: 1
+base: /
+websiteTitle: 'Inertia conformance'
+dependencies:
+  - leon-wbr/inertia-conformance
+languages:
+  -
+    languageId: 0
+    title: English
+    navigationTitle: English
+    enabled: true
+    base: /
+    locale: en_US.UTF-8
+    flag: us

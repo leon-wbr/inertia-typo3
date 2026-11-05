@@ -1,0 +1,14 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  LeonWbr\InertiaConformance\:
+    resource: "../Classes/*"
+
+  LeonWbr\InertiaConformance\Middleware\InertiaMiddleware:
+    public: true
+
+  LeonWbr\InertiaConformance\Middleware\CaseEndpoints:
+    public: true
