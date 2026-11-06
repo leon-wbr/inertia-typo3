@@ -128,22 +128,36 @@ test("C32 a prefetch gets a fragment redirect unchanged", async ({ request }) =>
   expect(response.headers()["location"]).toBe("/dump/other#section");
 });
 
-test("C33 a prefetch leaves flash data in the session", async ({ request }) => {
-  await request.post("/_c/flash", { headers: await inertiaHeaders(request), maxRedirects: 0 });
+// inertiaHeaders() loads a page to read the asset version, and that page
+// load would use up the flash data, so these cases build the headers first.
 
-  const prefetch = await request.get("/dump", { headers: await inertiaHeaders(request, { Purpose: "prefetch" }) });
+test("C33 without a prefetch, flash data reaches the next visit", async ({ request }) => {
+  const headers = await inertiaHeaders(request);
+  await request.post("/_c/flash", { headers, maxRedirects: 0 });
+
+  const visit = await request.get("/dump", { headers });
+
+  expect((await visit.json()).flash).toEqual({ message: "Flashed once" });
+});
+
+test("C33 a prefetch leaves flash data in the session", async ({ request }) => {
+  const headers = await inertiaHeaders(request);
+  await request.post("/_c/flash", { headers, maxRedirects: 0 });
+
+  const prefetch = await request.get("/dump", { headers: { ...headers, Purpose: "prefetch" } });
   expect((await prefetch.json()).flash).toBeUndefined();
-  const visit = await request.get("/dump", { headers: await inertiaHeaders(request) });
+  const visit = await request.get("/dump", { headers });
 
   expect((await visit.json()).flash).toEqual({ message: "Flashed once" });
 });
 
 test("C33 a prefetch leaves validation errors in the session", async ({ request }) => {
-  await request.post("/_c/form", { headers: await inertiaHeaders(request), data: { name: "" }, maxRedirects: 0 });
+  const headers = await inertiaHeaders(request);
+  await request.post("/_c/form", { headers, data: { name: "" }, maxRedirects: 0 });
 
-  const prefetch = await request.get("/form", { headers: await inertiaHeaders(request, { Purpose: "prefetch" }) });
+  const prefetch = await request.get("/form", { headers: { ...headers, Purpose: "prefetch" } });
   expect((await prefetch.json()).props.errors).toEqual({});
-  const visit = await request.get("/form", { headers: await inertiaHeaders(request) });
+  const visit = await request.get("/form", { headers });
 
   expect((await visit.json()).props.errors).toEqual({ name: "The name is required." });
 });
@@ -219,24 +233,26 @@ test("C41 location() answers an Inertia visit with a 409 and X-Inertia-Location"
 
 test("C43 a multipart PUT reaches the handler with its fields and file", async ({ request }) => {
   test.fail(true, "TODO.md bug 5: multipart PUT bodies are not parsed");
+  const headers = await inertiaHeaders(request);
   await request.put("/_c/upload", {
-    headers: await inertiaHeaders(request),
+    headers,
     multipart: { name: "Ada", avatar: { name: "avatar.txt", mimeType: "text/plain", buffer: Buffer.from("x") } },
     maxRedirects: 0,
   });
-  const page = await (await request.get("/dump", { headers: await inertiaHeaders(request) })).json();
+  const page = await (await request.get("/dump", { headers })).json();
 
   expect(page.flash).toEqual({ upload: { method: "PUT", name: "Ada", file: "avatar.txt" } });
 });
 
 test("C43 a multipart POST with _method=put is handled as a PUT", async ({ request }) => {
   test.fail(true, "TODO.md bug 5: _method is not honoured");
+  const headers = await inertiaHeaders(request);
   await request.post("/_c/upload", {
-    headers: await inertiaHeaders(request),
+    headers,
     multipart: { _method: "put", name: "Ada", avatar: { name: "avatar.txt", mimeType: "text/plain", buffer: Buffer.from("x") } },
     maxRedirects: 0,
   });
-  const page = await (await request.get("/dump", { headers: await inertiaHeaders(request) })).json();
+  const page = await (await request.get("/dump", { headers })).json();
 
   expect(page.flash).toEqual({ upload: { method: "PUT", name: "Ada", file: "avatar.txt" } });
 });
