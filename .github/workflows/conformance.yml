@@ -1,0 +1,42 @@
+name: Conformance
+
+# The official Inertia clients against TYPO3 and the adapter
+# (conformance/, docs/plans/2026-11-05-compat-and-native.md).
+# Every branch push (pull requests and Dependabot's bumps included) and on
+# demand.
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  conformance:
+    name: ddev conformance
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ddev/github-action-setup-ddev@v1.12.1
+        with:
+          autostart: true
+      - name: Conformance suite (setup, client builds, Playwright)
+        run: ddev conformance
+      - name: Conformance matrix
+        if: always()
+        run: |
+          if [ -f conformance/matrix.md ]; then
+            cat conformance/matrix.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Matrix and Playwright report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: conformance
+          path: |
+            conformance/matrix.md
+            conformance/matrix.json
+            conformance/playwright-report/
+            conformance/test-results/
+          if-no-files-found: ignore

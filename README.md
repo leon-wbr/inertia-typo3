@@ -74,6 +74,14 @@ runs everything from scratch and exits non-zero on the first failure:
 
 GitHub Actions runs the same command on every push and pull request. `ddev outdated` lists outdated Composer and pnpm dependencies of the example.
 
+### Conformance with the official clients
+
+```sh
+ddev conformance
+```
+
+runs the official Inertia clients, `@inertiajs/react`, `@inertiajs/vue3` and `@inertiajs/svelte`, against a TYPO3 project of their own with this adapter. Every case of the protocol conformance list is a test, and known gaps are expected failures. The run writes a case × client matrix to `conformance/matrix.md`. GitHub Actions runs it on every push and shows the matrix in the job summary. See [conformance/README.md](conformance/README.md).
+
 ## Installation in your own project
 
 The package is not on Packagist yet. Add the repository and require it:

@@ -1,0 +1,4 @@
+name: leon-wbr/inertia-conformance
+label: Inertia conformance cases
+dependencies:
+  - leon-wbr/inertia
