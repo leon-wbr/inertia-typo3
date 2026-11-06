@@ -7,7 +7,7 @@
   },
   "client": {
     "headers": {
-      "Purpose": "partial",
+      "Purpose": "supported",
       "X-Inertia": "supported",
       "X-Inertia-Error-Bag": "supported",
       "X-Inertia-Except-Once-Props": "supported",

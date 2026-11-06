@@ -18,13 +18,12 @@ How to read the tables:
   - P2: useful.
   - P3: niche.
 
-Overview: 74 supported, 16 partial (5 of them untested), 40 missing, 15 not applicable.
+Overview: 76 supported, 14 partial (5 of them untested), 40 missing, 15 not applicable.
 
 ## Next up
 
-1. **Prefetches and the session.** Decide whether a prefetch should leave pending flash data and errors in the session (conformance case C33).
-2. **Rescued deferred props.** Add `defer(..., rescue: true)`, `rescuedProps` and logging. With SSR, this is what the community adapters page means by "partial".
-3. **Server-side rendering.**
+1. **Rescued deferred props.** Add `defer(..., rescue: true)`, `rescuedProps` and logging. With SSR, this is what the community adapters page means by "partial".
+2. **Server-side rendering.**
    - An HTTP gateway to the Inertia SSR server (`POST /render`) that falls back to client-side rendering on failure.
    - The SSR `head` goes into TYPO3's `PageRenderer`, and the SSR `body` replaces the page script in `App.html`.
    - SSR can be turned off per request or path.
@@ -32,20 +31,20 @@ Overview: 74 supported, 16 partial (5 of them untested), 40 missing, 15 not appl
    - Bundle detection, a health check, console commands and site settings.
 
    This is its own pull request, and closes group 6.
-4. **Session-backed `clearHistory()` and `preserveFragment()`.** Both must survive a redirect, as in a logout. This is bug 4.
-5. **Error pages through Inertia.** Hook into TYPO3's site `errorHandling`, so that a 404 or 500 on an Inertia visit renders a component with the shared props instead of HTML, which the client shows in its error modal.
-6. **File uploads with PUT/PATCH.** Honour `_method` on multipart POSTs, as the Inertia docs advise, or parse multipart bodies with `request_parse_body()` on PHP 8.4. This is bug 5.
-7. **History encryption settings.** Add a global switch (site or extension setting) and an `EncryptHistory` middleware.
-8. **Testing helpers.**
+3. **Session-backed `clearHistory()` and `preserveFragment()`.** Both must survive a redirect, as in a logout. This is bug 4.
+4. **Error pages through Inertia.** Hook into TYPO3's site `errorHandling`, so that a 404 or 500 on an Inertia visit renders a component with the shared props instead of HTML, which the client shows in its error modal.
+5. **File uploads with PUT/PATCH.** Honour `_method` on multipart POSTs, as the Inertia docs advise, or parse multipart bodies with `request_parse_body()` on PHP 8.4. This is bug 5.
+6. **History encryption settings.** Add a global switch (site or extension setting) and an `EncryptHistory` middleware.
+7. **Testing helpers.**
    - Add `reload()`, `reloadOnly()`, `reloadExcept()`, `loadDeferredProps()` and flash assertions on redirects.
    - Add tests for every `partial (untested)` row.
-9. **DX parity.**
+8. **DX parity.**
    - A per-response root view and view data, a URL resolver, a global component transform and `back()`.
    - `ProvidesInertiaProperties` and `ProvidesInertiaProperty`, and the array form of `append()`/`prepend()`.
    - A switch for `sharedProps`.
-10. **Big integers.** Add `preserveBigIntegers` and the `$bigint` markers.
-11. **Precognition.** A `Precognition` request short-circuits to 204 or 422 through a validation hook.
-12. **Live props and DevTools.** These need a broadcaster and a request recorder, so they come last.
+9. **Big integers.** Add `preserveBigIntegers` and the `$bigint` markers.
+10. **Precognition.** A `Precognition` request short-circuits to 204 or 422 through a validation hook.
+11. **Live props and DevTools.** These need a broadcaster and a request recorder, so they come last.
 
 ## Getting listed on Inertia's community adapters page
 
@@ -83,7 +82,7 @@ The steps, in order:
 | Request `X-Inertia-Error-Bag` | https://inertiajs.com/docs/v3/the-basics/validation; [IL src/Middleware.php#L309-L333](https://github.com/inertiajs/inertia-laravel/blob/v3.7.0/src/Middleware.php#L309-L333) | supported | [`InertiaMiddleware.php:165-170`](Classes/Middleware/InertiaMiddleware.php#L165); [`InertiaMiddlewareTest::theErrorBagHeaderScopesTheDefaultBag`](Tests/Unit/Middleware/InertiaMiddlewareTest.php#L270), [`InertiaFeaturesTest::errorsAreScopedToTheErrorBagOfTheRequest`](Tests/Functional/Frontend/InertiaFeaturesTest.php#L92) | P1 |
 | Request `X-Inertia-Except-Once-Props` | https://inertiajs.com/docs/v3/core-concepts/the-protocol#once-props; [IL src/PropsResolver.php#L406-L435](https://github.com/inertiajs/inertia-laravel/blob/v3.7.0/src/PropsResolver.php#L406-L435) | supported | [`PropsResolver.php:75`](Classes/Service/PropsResolver.php#L75), [`:181-185`](Classes/Service/PropsResolver.php#L181); [`PropsResolverTest::oncePropsTheClientHasAreLeftOutButKeepTheirMetadata`](Tests/Unit/Service/PropsResolverTest.php#L237), [`InertiaFeaturesTest::oncePropsAreSkippedWhenTheClientHasThem`](Tests/Functional/Frontend/InertiaFeaturesTest.php#L119) | P1 |
 | Request `X-Inertia-Infinite-Scroll-Merge-Intent` | https://inertiajs.com/docs/v3/core-concepts/the-protocol#infinite-scroll; [IL src/ScrollProp.php#L72-L79](https://github.com/inertiajs/inertia-laravel/blob/v3.7.0/src/ScrollProp.php#L72-L79) | supported | [`ScrollProp.php:58-66`](Classes/Props/ScrollProp.php#L58); [`PropsResolverTest::scrollPropsPrependWhenTheClientAsks`](Tests/Unit/Service/PropsResolverTest.php#L321), [`InertiaFeaturesTest::scrollPropsPrependWhenScrollingUp`](Tests/Functional/Frontend/InertiaFeaturesTest.php#L156) | P1 |
-| Request `Purpose: prefetch` | https://inertiajs.com/docs/v3/core-concepts/the-protocol#redirects (line 705: prefetches get the redirect unchanged); [IL src/Middleware.php#L182-L184](https://github.com/inertiajs/inertia-laravel/blob/v3.7.0/src/Middleware.php#L182-L184) | partial: read for fragment redirects, which prefetches get unchanged; a prefetch still pulls pending flash data and errors (group 10) | [`InertiaMiddleware.php`](Classes/Middleware/InertiaMiddleware.php); [`InertiaMiddlewareTest::prefetchRequestsGetFragmentRedirectsUnchanged`](Tests/Unit/Middleware/InertiaMiddlewareTest.php), conformance C32 | P1 |
+| Request `Purpose: prefetch` | https://inertiajs.com/docs/v3/core-concepts/the-protocol#redirects (line 705: prefetches get the redirect unchanged); [IL src/Middleware.php#L182-L184](https://github.com/inertiajs/inertia-laravel/blob/v3.7.0/src/Middleware.php#L182-L184) | supported: prefetches get fragment redirects unchanged, and leave pending flash data and errors in the session for the next visit | [`InertiaMiddleware.php`](Classes/Middleware/InertiaMiddleware.php); [`InertiaMiddlewareTest::prefetchRequestsGetFragmentRedirectsUnchanged`](Tests/Unit/Middleware/InertiaMiddlewareTest.php), [`::aPrefetchLeavesErrorsForTheNextVisit`](Tests/Unit/Middleware/InertiaMiddlewareTest.php), [`InertiaServiceTest::aPrefetchLeavesFlashDataForTheNextVisit`](Tests/Unit/Service/InertiaServiceTest.php), conformance C32, C33 | P1 |
 | Request `Content-Type: application/json` bodies (all verbs) | https://inertiajs.com/docs/v3/core-concepts/the-protocol#request-headers; [CORE xhrHttpClient.ts#L136-L148](https://github.com/inertiajs/inertia/blob/v3.11.0/packages/core/src/xhrHttpClient.ts#L136-L148) | supported | [`InertiaMiddleware.php:204-222`](Classes/Middleware/InertiaMiddleware.php#L204); [`InertiaMiddlewareTest::jsonBodiesAreParsed`](Tests/Unit/Middleware/InertiaMiddlewareTest.php#L201), [`InertiaFeaturesTest::errorsArriveAfterTheRedirectAndAreThenCleared`](Tests/Functional/Frontend/InertiaFeaturesTest.php#L83) | P1 |
 | Request `X-Requested-With`, `Accept`, `Cache-Control: no-cache` | https://inertiajs.com/docs/v3/core-concepts/the-protocol#request-headers | n/a: informational; the adapter detects Inertia by `X-Inertia`, and TYPO3 does not serve JSON page objects from its page cache (they leave through `PropagateResponseException`) | — | — |
 | Request `X-XSRF-TOKEN` | https://inertiajs.com/docs/v3/security/csrf-protection | n/a: the client only sends it when an `XSRF-TOKEN` cookie exists; TYPO3's frontend sets none (see group 10) | — | — |
@@ -250,7 +249,7 @@ The steps, in order:
 
 | Feature | Defined in | Status | Adapter coverage | Priority |
 | --- | --- | --- | --- | --- |
-| Prefetching (`Purpose: prefetch`) | https://inertiajs.com/docs/v3/data-props/prefetching | partial: prefetches are served like visits (JSON is never stored in TYPO3's page cache, so no cache poisoning) and get fragment redirects unchanged, but a prefetch renders the page, which pulls pending flash and errors out of the session (same as Laravel's pull-at-render, but worth an opt-out) | [`InertiaMiddleware.php:92`](Classes/Middleware/InertiaMiddleware.php#L92), [`InertiaService.php:324`](Classes/Service/InertiaService.php#L324); [`InertiaFrontendTest::pagesStayInThePageCache`](Tests/Functional/Frontend/InertiaFrontendTest.php#L119) | P1 |
+| Prefetching (`Purpose: prefetch`) | https://inertiajs.com/docs/v3/data-props/prefetching | supported: prefetches are served like visits (JSON is never stored in TYPO3's page cache, so no cache poisoning), get fragment redirects unchanged, and get no flash data or errors: those stay in the session for the next visit (inertia-laravel 3.7.0 hands them to the prefetch, see C33) | [`InertiaMiddleware.php:92`](Classes/Middleware/InertiaMiddleware.php#L92), [`InertiaService.php:324`](Classes/Service/InertiaService.php#L324); [`InertiaFrontendTest::pagesStayInThePageCache`](Tests/Functional/Frontend/InertiaFrontendTest.php#L119) | P1 |
 | Polling, load-when-visible | https://inertiajs.com/docs/v3/data-props/polling, https://inertiajs.com/docs/v3/data-props/load-when-visible | supported (plain partial reloads of optional/deferred props) | [`PropsResolver.php:136-147`](Classes/Service/PropsResolver.php#L136); [`PropsResolverTest::optionalPropsAreOnlyResolvedWhenRequested`](Tests/Unit/Service/PropsResolverTest.php#L129), [e2e `features.spec.ts` "optional props"](example/e2e/features.spec.ts#L22) | P2 |
 | Infinite scroll | https://inertiajs.com/docs/v3/data-props/infinite-scroll | supported | see `scroll()` in group 2; [e2e `infinite-scroll.spec.ts`](example/e2e/infinite-scroll.spec.ts#L5) | P1 |
 | `<Form>` / `useForm` (JSON bodies, redirect-with-errors, error bags) | https://inertiajs.com/docs/v3/the-basics/forms | supported | [`InertiaMiddleware.php:204-222`](Classes/Middleware/InertiaMiddleware.php#L204); [e2e `form.spec.ts` "validation errors…"](example/e2e/form.spec.ts#L46) | P1 |

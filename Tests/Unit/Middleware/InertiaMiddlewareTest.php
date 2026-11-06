@@ -285,6 +285,15 @@ final class InertiaMiddlewareTest extends UnitTestCase
     }
 
     #[Test]
+    public function aPrefetchLeavesErrorsForTheNextVisit(): void
+    {
+        $this->inertia->withErrors(['name' => 'Required.']);
+
+        self::assertSame([], $this->sharedErrors([Header::PURPOSE => 'prefetch']));
+        self::assertSame(['name' => 'Required.'], $this->sharedErrors());
+    }
+
+    #[Test]
     public function errorsAreSharedInPartialReloadsToo(): void
     {
         $this->inertia->withErrors(['name' => 'Required.']);

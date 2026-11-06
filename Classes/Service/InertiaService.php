@@ -76,6 +76,17 @@ class InertiaService
         return $request !== null && $request->hasHeader(Header::INERTIA);
     }
 
+    /**
+     * A prefetch is the client fetching a page the user may visit next. It
+     * must not use up anything that is meant for the next visit.
+     */
+    public function isPrefetch(?ServerRequestInterface $request = null): bool
+    {
+        $request ??= $this->request;
+
+        return $request !== null && strtolower($request->getHeaderLine(Header::PURPOSE)) === 'prefetch';
+    }
+
     public function setRootView(string $view): void
     {
         $this->rootView = $view;
@@ -321,8 +332,25 @@ class InertiaService
             $metadata,
             $this->clearHistory ? ['clearHistory' => true] : [],
             $this->encryptHistory ? ['encryptHistory' => true] : [],
-            ($flash = $this->pullFlashed($request)) !== [] ? ['flash' => $flash] : [],
+            $this->flashForPage($request),
         );
+    }
+
+    /**
+     * Flash data for the page object, cleared once sent. A prefetch gets
+     * none and leaves it for the next visit: the user may never open the
+     * prefetched page, and if they do, a cached copy must not replay it.
+     *
+     * @return array{flash?: array<string, mixed>}
+     */
+    protected function flashForPage(ServerRequestInterface $request): array
+    {
+        if ($this->isPrefetch($request)) {
+            return [];
+        }
+        $flash = $this->pullFlashed($request);
+
+        return $flash !== [] ? ['flash' => $flash] : [];
     }
 
     /**

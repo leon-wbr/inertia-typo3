@@ -222,4 +222,16 @@ final class InertiaServiceTest extends UnitTestCase
         self::assertSame(['status' => 'Saved', 'level' => 'success'], $page['flash']);
         self::assertArrayNotHasKey('flash', $inertia->page('Page', [], $this->inertiaRequest()));
     }
+
+    #[Test]
+    public function aPrefetchLeavesFlashDataForTheNextVisit(): void
+    {
+        $inertia = $this->service();
+        $inertia->flash('status', 'Saved');
+
+        $prefetch = $inertia->page('Page', [], $this->inertiaRequest()->withHeader(Header::PURPOSE, 'prefetch'));
+        self::assertArrayNotHasKey('flash', $prefetch);
+
+        self::assertSame(['status' => 'Saved'], $inertia->page('Page', [], $this->inertiaRequest())['flash']);
+    }
 }

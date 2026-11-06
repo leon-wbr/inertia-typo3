@@ -92,7 +92,7 @@ class InertiaMiddleware implements MiddlewareInterface
         if (
             $this->isRedirect($response)
             && str_contains($response->getHeaderLine('Location'), '#')
-            && !$this->isPrefetch($request)
+            && !$this->inertia->isPrefetch($request)
         ) {
             $response = $this->onRedirectWithFragment($response);
         }
@@ -155,10 +155,15 @@ class InertiaMiddleware implements MiddlewareInterface
      * The `errors` prop: validation errors flashed with
      * InertiaService::withErrors(), cleared once they are read. With an
      * X-Inertia-Error-Bag header, the default bag is sent under that name,
-     * as inertia-laravel does.
+     * as inertia-laravel does. A prefetch gets none and leaves them for the
+     * next visit, like flash data.
      */
     public function resolveValidationErrors(ServerRequestInterface $request): object
     {
+        if ($this->inertia->isPrefetch($request)) {
+            return new \stdClass();
+        }
+
         $bags = array_map(
             fn(array $fields): object => (object)array_map(
                 fn(array $messages): string|array => $this->withAllErrors ? $messages : (string)reset($messages),
@@ -224,11 +229,6 @@ class InertiaMiddleware implements MiddlewareInterface
         }
 
         return is_array($data) ? $request->withParsedBody($data) : $request;
-    }
-
-    protected function isPrefetch(ServerRequestInterface $request): bool
-    {
-        return strtolower($request->getHeaderLine(Header::PURPOSE)) === 'prefetch';
     }
 
     protected function isRedirect(ResponseInterface $response): bool

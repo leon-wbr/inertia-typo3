@@ -129,13 +129,23 @@ test("C32 a prefetch gets a fragment redirect unchanged", async ({ request }) =>
 });
 
 test("C33 a prefetch leaves flash data in the session", async ({ request }) => {
-  test.fail(true, "TODO.md group 10: a prefetch renders the page and pulls the flash data");
   await request.post("/_c/flash", { headers: await inertiaHeaders(request), maxRedirects: 0 });
 
-  await request.get("/dump", { headers: await inertiaHeaders(request, { Purpose: "prefetch" }) });
+  const prefetch = await request.get("/dump", { headers: await inertiaHeaders(request, { Purpose: "prefetch" }) });
+  expect((await prefetch.json()).flash).toBeUndefined();
   const visit = await request.get("/dump", { headers: await inertiaHeaders(request) });
 
   expect((await visit.json()).flash).toEqual({ message: "Flashed once" });
+});
+
+test("C33 a prefetch leaves validation errors in the session", async ({ request }) => {
+  await request.post("/_c/form", { headers: await inertiaHeaders(request), data: { name: "" }, maxRedirects: 0 });
+
+  const prefetch = await request.get("/form", { headers: await inertiaHeaders(request, { Purpose: "prefetch" }) });
+  expect((await prefetch.json()).props.errors).toEqual({});
+  const visit = await request.get("/form", { headers: await inertiaHeaders(request) });
+
+  expect((await visit.json()).props.errors).toEqual({ name: "The name is required." });
 });
 
 for (const method of ["PUT", "PATCH", "DELETE"]) {
