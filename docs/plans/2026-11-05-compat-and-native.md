@@ -7,13 +7,6 @@ Plan of 5 November 2026. It has two goals:
 
 The protocol-level gap analysis already exists: [TODO.md](../../TODO.md) audits the adapter against inertia-laravel 3.7.0 and @inertiajs/core 3.11.0 (145 rows). This plan doesn't repeat it. It adds what TODO.md lacks: a list of observable behaviours that a test against a real client can check (the conformance list), the TYPO3 feature inventory, and the order of work.
 
-State of the 3 Nov branches: all of them are merged or closed already.
-- `feat/typo3-14-inertia-3` is #9.
-- `feat/example-sitepackage` is #10.
-- `feat/inertia-3-features` is #11.
-- `feat/inertia-parity-audit` is #12.
-- In `leon-wbr/inertia-sitepackage`, `feat/typo3-14-inertia-3` was #2. It was closed when that repository was archived and folded into `example/packages/sitepackage`.
-
 ## 1. The conformance harness
 
 ### Design
@@ -145,7 +138,7 @@ What a TYPO3 v13/v14 site expects to reach the client, and how. Status:
 - `missing`: not there;
 - `unverified`: should work through TYPO3, but nothing tests it.
 
-The proposed convention says how the adapter should expose each feature. Most go through the shared props of `InertiaMiddleware`, as closures, so partial reloads skip them. Page-specific data goes through `BeforeInertiaPageRenderedEvent`. The EXT:headless comparison of 3 Nov (`typo3-headless-parity`) is the evidence for several rows.
+The proposed convention says how the adapter should expose each feature. Most go through the shared props of `InertiaMiddleware`, as closures, so partial reloads skip them. Page-specific data goes through `BeforeInertiaPageRenderedEvent`.
 
 | Feature | Status | Today | Proposed convention |
 | --- | --- | --- | --- |
@@ -168,11 +161,11 @@ The proposed convention says how the adapter should expose each feature. Most go
 
 ## 3. Pull request sequence
 
-Each PR is focused and does one thing. PRs are drafts until they are green and complete, and Leon reviews all of them. Each feature PR removes the `test.fail()` from its conformance cases, so the matrix records the progress.
+Each PR is focused and does one thing. PRs are drafts until they are green and complete. Each feature PR removes the `test.fail()` from its conformance cases, so the matrix records the progress.
 
-1. **docs: this plan.** It also lists the state of the 3 Nov branches.
+1. **docs: this plan.**
 2. **test: conformance harness with the official React, Vue and Svelte clients.** The `conformance/` TYPO3 project, the extension and the case pages, the three clients, the specs (gaps as `test.fail()`), the matrix reporter, `ddev conformance` and `.github/workflows/conformance.yml`.
-3. **fix: middleware protocol bugs.** QUERY → 303, `Vary` on replaced responses, prefetch fragment redirects passed through, prefetches leave flash data in the session. Closes C32, C33, C37 and C39 (TODO.md bugs 1–3).
+3. **fix: middleware protocol bugs.** QUERY → 303, `Vary` on replaced responses, prefetch fragment redirects passed through. Closes C32, C37 and C39 (TODO.md bugs 1–3). A follow-up makes prefetches leave flash data and errors in the session for the next visit, and closes C33.
 4. **feat: session-backed clearHistory and preserveFragment.** Closes C47 and C49 (bug 4).
 5. **feat: global history encryption.** A site setting and an `EncryptHistory` middleware. Closes C48.
 6. **feat: rescued deferred props.** `defer(..., rescue: true)`, `rescuedProps` and logging. Closes C21.
