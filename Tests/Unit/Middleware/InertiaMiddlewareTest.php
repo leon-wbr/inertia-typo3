@@ -74,7 +74,7 @@ final class InertiaMiddlewareTest extends UnitTestCase
      */
     public static function methodsThatNeedSeeOther(): array
     {
-        return ['PUT' => ['PUT'], 'PATCH' => ['PATCH'], 'DELETE' => ['DELETE']];
+        return ['PUT' => ['PUT'], 'PATCH' => ['PATCH'], 'DELETE' => ['DELETE'], 'QUERY' => ['QUERY']];
     }
 
     #[Test]
@@ -183,6 +183,35 @@ final class InertiaMiddlewareTest extends UnitTestCase
 
         self::assertSame(303, $response->getStatusCode());
         self::assertSame('https://example.org/form', $response->getHeaderLine('Location'));
+    }
+
+    #[Test]
+    public function responsesTheMiddlewareReplacesVaryOnInertiaToo(): void
+    {
+        $empty = $this->middleware()->process(
+            $this->request('POST', [Header::INERTIA => 'true']),
+            $this->handler(static fn(): ResponseInterface => new Response()),
+        );
+        $fragment = $this->middleware()->process(
+            $this->request('POST', [Header::INERTIA => 'true']),
+            $this->handler(static fn(): ResponseInterface => new RedirectResponse('/page#section', 302)),
+        );
+
+        self::assertSame(Header::INERTIA, $empty->getHeaderLine('Vary'));
+        self::assertSame(Header::INERTIA, $fragment->getHeaderLine('Vary'));
+    }
+
+    #[Test]
+    public function prefetchRequestsGetFragmentRedirectsUnchanged(): void
+    {
+        $response = $this->middleware()->process(
+            $this->request('GET', [Header::INERTIA => 'true', Header::PURPOSE => 'prefetch']),
+            $this->handler(static fn(): ResponseInterface => new RedirectResponse('/page#section', 302)),
+        );
+
+        self::assertSame(302, $response->getStatusCode());
+        self::assertSame('/page#section', $response->getHeaderLine('Location'));
+        self::assertSame(Header::INERTIA, $response->getHeaderLine('Vary'));
     }
 
     #[Test]

@@ -119,7 +119,6 @@ test("C18 always props and errors are in every partial reload", async ({ request
 });
 
 test("C32 a prefetch gets a fragment redirect unchanged", async ({ request }) => {
-  test.fail(true, "TODO.md bug 3: Purpose: prefetch is never read");
   const response = await request.get("/_c/fragment", {
     headers: await inertiaHeaders(request, { Purpose: "prefetch" }),
     maxRedirects: 0,
@@ -159,7 +158,6 @@ test("C36 a 302 after POST stays a 302", async ({ request }) => {
 });
 
 test("C37 a 302 after QUERY becomes a 303", async ({ request }) => {
-  test.fail(true, "TODO.md bug 1: QUERY is not in the 303 list");
   const response = await request.fetch("/_c/method", {
     method: "QUERY",
     headers: { ...(await inertiaHeaders(request)), "Content-Type": "application/json" },
@@ -181,7 +179,6 @@ test("C38 an empty 200 redirects back to the Referer", async ({ request }) => {
 });
 
 test("C39 responses the middleware replaces keep Vary: X-Inertia", async ({ request }) => {
-  test.fail(true, "TODO.md bug 2: Vary is added before the response is replaced");
   const empty = await request.post("/_c/empty", { headers: await inertiaHeaders(request), maxRedirects: 0 });
   expect(varyValues(empty.headers()["vary"])).toContain("x-inertia");
 
