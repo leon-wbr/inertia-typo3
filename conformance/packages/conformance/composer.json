@@ -5,7 +5,7 @@
   "license": "MIT",
   "require": {
     "php": "^8.2",
-    "leon-wbr/inertia": "*",
+    "leon-wbr/inertia-typo3": "*",
     "typo3/cms-core": "^14.3.10",
     "typo3/cms-frontend": "^14.3.10"
   },

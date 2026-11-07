@@ -23,7 +23,7 @@ It used to live in its own repository, `leon-wbr/inertia-sitepackage`; its histo
 |---|---|
 | TYPO3 | 14.3 |
 | PHP | 8.2 to 8.5 |
-| [leon-wbr/inertia](../../../README.md) | the version in this repository |
+| [leon-wbr/inertia-typo3](../../../README.md) | the version in this repository |
 | Node.js | 26 (LTS), with pnpm 12 |
 
 ## Quickstart

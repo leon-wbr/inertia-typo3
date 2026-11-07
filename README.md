@@ -85,7 +85,7 @@ runs the official Inertia clients, `@inertiajs/react`, `@inertiajs/vue3` and `@i
 ## Installation in your own project
 
 ```sh
-composer require leon-wbr/inertia
+composer require leon-wbr/inertia-typo3
 ```
 
 Then:
@@ -122,7 +122,7 @@ Then:
    ```
 
    ```sh
-   composer require leon-wbr/inertia leon-wbr/inertia-sitepackage:@dev
+   composer require leon-wbr/inertia-typo3 leon-wbr/inertia-sitepackage:@dev
    ```
 
 3. Add its site set `leon-wbr/inertia-sitepackage` to your site. It pulls in the adapter's set and fluid_styled_content.

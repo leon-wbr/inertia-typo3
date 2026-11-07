@@ -22,7 +22,7 @@
   ],
   "require": {
     "php": "^8.2",
-    "leon-wbr/inertia": "*@dev",
+    "leon-wbr/inertia-typo3": "*@dev",
     "leon-wbr/inertia-sitepackage": "@dev",
     "praetorius/vite-asset-collector": "^1.18.4",
     "typo3/cms-backend": "^14.3.10",

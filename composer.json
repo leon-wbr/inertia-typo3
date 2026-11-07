@@ -1,5 +1,5 @@
 {
-  "name": "leon-wbr/inertia",
+  "name": "leon-wbr/inertia-typo3",
   "type": "typo3-cms-extension",
   "description": "A TYPO3 adapter for Inertia.js.",
   "license": "GPL-3.0-or-later",
