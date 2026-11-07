@@ -4,7 +4,7 @@
   "type": "typo3-cms-extension",
   "require": {
     "php": "^8.2",
-    "leon-wbr/inertia": "*",
+    "leon-wbr/inertia-typo3": "*",
     "praetorius/vite-asset-collector": "^1.18.4",
     "typo3/cms-core": "^14.3.10",
     "typo3/cms-fluid-styled-content": "^14.3.10",

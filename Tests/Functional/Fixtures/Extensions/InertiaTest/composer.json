@@ -4,7 +4,7 @@
   "type": "typo3-cms-extension",
   "license": "GPL-3.0-or-later",
   "require": {
-    "leon-wbr/inertia": "*"
+    "leon-wbr/inertia-typo3": "*"
   },
   "extra": {
     "typo3/cms": {

@@ -10,7 +10,7 @@ abstract class AbstractFunctionalTestCase extends FunctionalTestCase
 {
     protected array $coreExtensionsToLoad = ['fluid_styled_content'];
 
-    protected array $testExtensionsToLoad = ['leon-wbr/inertia'];
+    protected array $testExtensionsToLoad = ['leon-wbr/inertia-typo3'];
 
     protected array $configurationToUseInTestInstance = [
         'FE' => [

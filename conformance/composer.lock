@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "307107db4939132ea7cdf6cbb613cd86",
+    "content-hash": "354e456d8178dc14d55e46b87b2af605",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -1222,53 +1222,15 @@
             "published-time": "2026-10-17T23:57:53+00:00"
         },
         {
-            "name": "leon-wbr/inertia",
-            "version": "dev-main",
-            "dist": {
-                "type": "path",
-                "url": "..",
-                "reference": "122b9a2b0fb0a44e3f55d0579da7e88f8d83967f"
-            },
-            "require": {
-                "php": "^8.2",
-                "typo3/cms-core": "^14.3.10",
-                "typo3/cms-extbase": "^14.3.10",
-                "typo3/cms-fluid": "^14.3.10",
-                "typo3/cms-frontend": "^14.3.10"
-            },
-            "type": "typo3-cms-extension",
-            "extra": {
-                "typo3/cms": {
-                    "extension-key": "inertia"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "LeonWbr\\Inertia\\": "Classes/"
-                }
-            },
-            "authors": [
-                {
-                    "name": "Leon Weber",
-                    "email": "lw.leonweber@gmail.com"
-                }
-            ],
-            "description": "A TYPO3 adapter for Inertia.js.",
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
-        },
-        {
             "name": "leon-wbr/inertia-conformance",
             "version": "dev-main",
             "dist": {
                 "type": "path",
                 "url": "packages/conformance",
-                "reference": "2029fff5de6a9f6fe963c8573d260b20edb778ae"
+                "reference": "54a471f58b4ae4f7b13ec18fdd849b1f4bd7c56f"
             },
             "require": {
-                "leon-wbr/inertia": "*",
+                "leon-wbr/inertia-typo3": "*",
                 "php": "^8.2",
                 "typo3/cms-core": "^14.3.10",
                 "typo3/cms-frontend": "^14.3.10"
@@ -1288,6 +1250,62 @@
                 "MIT"
             ],
             "description": "Case pages and endpoints for the Inertia conformance harness.",
+            "transport-options": {
+                "symlink": true,
+                "relative": true
+            }
+        },
+        {
+            "name": "leon-wbr/inertia-typo3",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "..",
+                "reference": "6d73fce2a988791a2fe975b32c7ccc0b4e8bacf1"
+            },
+            "require": {
+                "php": "^8.2",
+                "typo3/cms-core": "^14.3.10",
+                "typo3/cms-extbase": "^14.3.10",
+                "typo3/cms-fluid": "^14.3.10",
+                "typo3/cms-frontend": "^14.3.10"
+            },
+            "type": "typo3-cms-extension",
+            "extra": {
+                "typo3/cms": {
+                    "extension-key": "inertia"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "LeonWbr\\Inertia\\": "Classes/"
+                }
+            },
+            "license": [
+                "GPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Leon Weber",
+                    "email": "lw.leonweber@gmail.com"
+                }
+            ],
+            "description": "A TYPO3 adapter for Inertia.js.",
+            "homepage": "https://github.com/leon-wbr/inertia-typo3",
+            "keywords": [
+                "inertia",
+                "inertiajs",
+                "react",
+                "spa",
+                "svelte",
+                "typo3",
+                "typo3-extension",
+                "vue"
+            ],
+            "support": {
+                "issues": "https://github.com/leon-wbr/inertia-typo3/issues",
+                "source": "https://github.com/leon-wbr/inertia-typo3"
+            },
             "transport-options": {
                 "symlink": true,
                 "relative": true
@@ -6857,8 +6875,8 @@
     "aliases": [],
     "minimum-stability": "dev",
     "stability-flags": {
-        "leon-wbr/inertia": 20,
-        "leon-wbr/inertia-conformance": 20
+        "leon-wbr/inertia-conformance": 20,
+        "leon-wbr/inertia-typo3": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,

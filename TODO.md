@@ -54,14 +54,14 @@ The [community adapters page](https://inertiajs.com/docs/v3/installation/communi
 - [x] It implements the [protocol](https://inertiajs.com/docs/v3/core-concepts/the-protocol) for a supported Inertia version: v3, see group 1 below.
 - [x] It documents its installation, root template and shared data APIs: [README](README.md#installation-in-your-own-project), sections "Installation in your own project" (with the `App.html` root view) and "Shared props".
 - [x] It states which Inertia version and protocol features it supports: the README's [Requirements](README.md#requirements) and [Compared with inertia-laravel](README.md#compared-with-inertia-laravel), and this file.
-- [ ] It has an active maintainer and a release on its language's package registry. `leon-wbr/inertia` isn't on Packagist yet, and the repository has no tags or releases.
+- [ ] It has an active maintainer and a release on its language's package registry. `leon-wbr/inertia-typo3` isn't on Packagist yet, and the repository has no tags or releases.
 
 The steps, in order:
 
 1. [x] Merge #9 (TYPO3 14.3 and the Inertia 3 protocol) to main. Done as `0369bd3`.
 2. [x] Merge #10 (the example sitepackage) and #11 (validation errors, flash, once and scroll props, testing helpers). Done as `6608632` and `d7a8f3b`.
 3. [ ] Tag a release (semver, e.g. `v1.0.0`) with release notes.
-4. [ ] Submit `leon-wbr/inertia` to Packagist and set up its GitHub hook for automatic updates.
+4. [ ] Submit `leon-wbr/inertia-typo3` to Packagist and set up its GitHub hook for automatic updates.
 5. [ ] Check that the README covers installation, the root template, shared data and the feature table. It does today. Keep the comparison table in line with this file.
 6. [ ] Choose `v3` or `v3 (partial)` from this audit. The docs call an adapter partial when it "lacks some newer features, such as once props, rescued deferred props, or shared prop keys". Rescued deferred props and SSR are missing, so today it is `v3 (partial)`; after "Next up" items 2 and 3 it is `v3`.
 7. [ ] Open a pull request to [inertiajs/docs](https://github.com/inertiajs/docs) that adds this row to the community table in `v3/installation/community-adapters.mdx`, sorted under PHP:

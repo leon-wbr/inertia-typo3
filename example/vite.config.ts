@@ -12,7 +12,7 @@ const hotFile = resolve(root, "var/vite-dev-server");
 
 /**
  * Keeps the dev server's file watcher out of vendor/, var/ and public/.
- * vendor/leon-wbr/inertia is a symlink to the repository root, which contains
+ * vendor/leon-wbr/inertia-typo3 is a symlink to the repository root, which contains
  * example/vendor again: watching it recurses until Node runs out of memory.
  * The sitepackage sources are watched where they live, in packages/.
  */
