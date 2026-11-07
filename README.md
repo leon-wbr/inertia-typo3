@@ -1,4 +1,4 @@
-> **⚠️ EXPERIMENTAL STATUS**: This package in early experimental stage. It is not recommended for production use yet. Expect breaking changes, limited debugging capabilities, and ongoing significant architectural changes. Feel free to try it out and provide feedback, but use with caution.
+> **Status:** before 1.0. The adapter implements the Inertia 3 protocol and is tested against the official React, Vue and Svelte clients, but its PHP API can still change between minor releases until 1.0. [Compared with inertia-laravel](#compared-with-inertia-laravel) lists what is missing. Feedback and issues are welcome.
 
 # TYPO3 Inertia Adapter
 
@@ -84,18 +84,8 @@ runs the official Inertia clients, `@inertiajs/react`, `@inertiajs/vue3` and `@i
 
 ## Installation in your own project
 
-The package is not on Packagist yet. Add the repository and require it:
-
-```json
-{
-  "repositories": [
-    { "type": "vcs", "url": "https://github.com/leon-wbr/inertia-typo3.git" }
-  ]
-}
-```
-
 ```sh
-composer require leon-wbr/inertia:@dev
+composer require leon-wbr/inertia
 ```
 
 Then:
@@ -126,14 +116,13 @@ Then:
    ```json
    {
      "repositories": [
-       { "type": "path", "url": "packages/*" },
-       { "type": "vcs", "url": "https://github.com/leon-wbr/inertia-typo3.git" }
+       { "type": "path", "url": "packages/*" }
      ]
    }
    ```
 
    ```sh
-   composer require leon-wbr/inertia:@dev leon-wbr/inertia-sitepackage:@dev
+   composer require leon-wbr/inertia leon-wbr/inertia-sitepackage:@dev
    ```
 
 3. Add its site set `leon-wbr/inertia-sitepackage` to your site. It pulls in the adapter's set and fluid_styled_content.
@@ -359,7 +348,7 @@ The adapter follows [inertia-laravel](https://github.com/inertiajs/inertia-larav
 
 - Server-side rendering, in its own pull request.
 - Rescued deferred props and BigInt preservation, if there is demand.
-- Publishing to Packagist and the TYPO3 Extension Repository.
+- Publishing to the TYPO3 Extension Repository.
 
 ## Contributing
 
@@ -367,4 +356,4 @@ See the [Contributing Guidelines](CONTRIBUTING.md). Run `ddev verify` before ope
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 (GPL-3.0). See the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v3.0 or later (GPL-3.0-or-later). See the [LICENSE](LICENSE) file for details.

@@ -2,6 +2,13 @@
   "name": "leon-wbr/inertia",
   "type": "typo3-cms-extension",
   "description": "A TYPO3 adapter for Inertia.js.",
+  "license": "GPL-3.0-or-later",
+  "keywords": ["typo3", "typo3-extension", "inertia", "inertiajs", "spa", "react", "vue", "svelte"],
+  "homepage": "https://github.com/leon-wbr/inertia-typo3",
+  "support": {
+    "issues": "https://github.com/leon-wbr/inertia-typo3/issues",
+    "source": "https://github.com/leon-wbr/inertia-typo3"
+  },
   "require": {
     "php": "^8.2",
     "typo3/cms-core": "^14.3.10",
