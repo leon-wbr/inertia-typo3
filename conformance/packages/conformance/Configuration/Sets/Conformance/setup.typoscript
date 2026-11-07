@@ -1,0 +1,7 @@
+plugin.tx_inertia {
+    view {
+        templateRootPaths {
+            10 = EXT:inertia_conformance/Resources/Private/Templates/
+        }
+    }
+}
