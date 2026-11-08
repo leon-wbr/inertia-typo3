@@ -45,6 +45,36 @@
       "LeonWbr\\Inertia\\Tests\\": "../Tests/"
     }
   },
+  "scripts": {
+    "cs": "php-cs-fixer check --config=../.php-cs-fixer.dist.php --show-progress=none",
+    "cs:fix": "php-cs-fixer fix --config=../.php-cs-fixer.dist.php",
+    "stan": "phpstan analyse --configuration=../phpstan.neon --no-progress --memory-limit=1G",
+    "test:unit": "phpunit --configuration ../Build/phpunit/UnitTests.xml",
+    "test:functional": "phpunit --configuration ../Build/phpunit/FunctionalTests.xml",
+    "test": [
+      "@test:unit",
+      "@test:functional"
+    ],
+    "test:coverage": [
+      "phpunit --configuration ../Build/phpunit/UnitTests.xml --coverage-clover var/coverage/clover.xml --coverage-text=php://stdout --only-summary-for-coverage-text",
+      "@php ../Build/Scripts/coverage-check.php var/coverage/clover.xml 74"
+    ],
+    "check": [
+      "@cs",
+      "@stan",
+      "@test"
+    ]
+  },
+  "scripts-descriptions": {
+    "cs": "Checks the PHP code style",
+    "cs:fix": "Fixes the PHP code style",
+    "stan": "Runs PHPStan",
+    "test:unit": "Runs the unit tests",
+    "test:functional": "Runs the functional tests",
+    "test": "Runs the unit and functional tests",
+    "test:coverage": "Runs the unit tests with coverage (needs pcov) and fails below the minimum line coverage",
+    "check": "Code style, PHPStan and both test suites: the PHP part of ddev verify"
+  },
   "config": {
     "allow-plugins": {
       "typo3/class-alias-loader": true,
