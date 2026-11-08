@@ -1,7 +1,7 @@
 {
   "name": "leon-wbr/inertia-typo3",
   "type": "typo3-cms-extension",
-  "description": "A TYPO3 adapter for Inertia.js.",
+  "description": "Inertia.js adapter - The Inertia.js 3 server adapter for TYPO3: TYPO3 keeps routing, languages and content; React, Vue or Svelte render the pages.",
   "license": "GPL-3.0-or-later",
   "keywords": ["typo3", "typo3-extension", "inertia", "inertiajs", "spa", "react", "vue", "svelte"],
   "homepage": "https://github.com/leon-wbr/inertia-typo3",
@@ -29,7 +29,11 @@
   ],
   "extra": {
     "typo3/cms": {
-      "extension-key": "inertia"
+      "extension-key": "inertia",
+      "version": "0.1.0",
+      "Package": {
+        "providesPackages": {}
+      }
     }
   }
 }
