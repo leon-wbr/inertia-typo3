@@ -106,6 +106,40 @@ final class InertiaServiceTest extends UnitTestCase
     }
 
     #[Test]
+    public function clearHistoryOnlyAppliesToTheNextPageObject(): void
+    {
+        $service = $this->service();
+        $service->clearHistory();
+
+        self::assertTrue($service->page('Page', [], $this->inertiaRequest())['clearHistory']);
+        self::assertArrayNotHasKey('clearHistory', $service->page('Page', [], $this->inertiaRequest()));
+    }
+
+    #[Test]
+    public function beginForgetsWhatThePreviousRequestConfigured(): void
+    {
+        $service = $this->service();
+        $service->begin($this->inertiaRequest('https://example.org/first'), 'v1', 'First');
+        $service->share('user', 'Ada');
+        $service->encryptHistory();
+        $service->clearHistory();
+        $service->flash('status', 'Saved');
+
+        $second = $this->inertiaRequest('https://example.org/second');
+        $service->begin($second, 'v2', 'App');
+        $page = $service->page('Page');
+
+        self::assertSame($second, $service->getRequest());
+        self::assertSame('v2', $page['version']);
+        self::assertSame('App', $service->getRootView());
+        self::assertSame('{}', json_encode($page['props']));
+        self::assertArrayNotHasKey('encryptHistory', $page);
+        self::assertArrayNotHasKey('clearHistory', $page);
+        // Flash data lives in the session, which outlasts a request.
+        self::assertSame(['status' => 'Saved'], $page['flash']);
+    }
+
+    #[Test]
     public function inertiaRequestsGetJson(): void
     {
         $response = $this->service()->render('Page', ['title' => 'Home'], $this->inertiaRequest('https://example.org/page?x=1'));

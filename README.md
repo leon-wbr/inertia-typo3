@@ -222,6 +222,8 @@ final class ProductPageListener
 
 In your own Extbase controllers or middlewares, use `InertiaService` directly: `render()`, `location()`, `redirect()`, `share()`, `shareOnce()`, `always()`, `optional()`, `defer()`, `merge()`, `deepMerge()`, `once()`, `scroll()`, `withErrors()`, `flash()`, `encryptHistory()` and `clearHistory()`.
 
+The adapter's middleware (`leon-wbr/inertia`) starts each request with a clean service: it forgets the shared props and history flags of the previous request. A middleware that shares props has to run after it; flashed errors and data are kept, because they live in the session.
+
 ### Forms and validation errors
 
 Handle the submission, flash the errors and redirect back. The errors are stored in the TYPO3 frontend user session, which works for anonymous visitors too (TYPO3 sets its session cookie once something is stored), and arrive on the next page as the `errors` prop:

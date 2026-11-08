@@ -59,6 +59,23 @@ class InertiaService
         protected readonly ViewFactoryInterface $viewFactory,
     ) {}
 
+    /**
+     * Starts a request: forgets the shared props, history flags, version
+     * and root view the previous request configured. The instance is a DI
+     * singleton, so without this, sub-requests and long-running workers
+     * inherit them. Session data (flashed errors and data) is kept: it is
+     * meant to outlast the request.
+     */
+    public function begin(ServerRequestInterface $request, ?string $version = null, string $rootView = 'App'): void
+    {
+        $this->request = $request;
+        $this->version = $version;
+        $this->rootView = $rootView;
+        $this->sharedProps = [];
+        $this->encryptHistory = false;
+        $this->clearHistory = false;
+    }
+
     public function setRequest(?ServerRequestInterface $request): void
     {
         $this->request = $request;
@@ -311,6 +328,10 @@ class InertiaService
 
         [$resolvedProps, $metadata] = (new PropsResolver($request, $component))->resolve($this->sharedProps, $props);
 
+        // clearHistory() applies to one page object only, as documented.
+        $clearHistory = $this->clearHistory;
+        $this->clearHistory = false;
+
         return array_merge(
             [
                 'component' => $component,
@@ -319,7 +340,7 @@ class InertiaService
                 'version' => $this->getVersion(),
             ],
             $metadata,
-            $this->clearHistory ? ['clearHistory' => true] : [],
+            $clearHistory ? ['clearHistory' => true] : [],
             $this->encryptHistory ? ['encryptHistory' => true] : [],
             ($flash = $this->pullFlashed($request)) !== [] ? ['flash' => $flash] : [],
         );

@@ -43,9 +43,7 @@ class InertiaMiddleware implements MiddlewareInterface
     {
         $request = $this->parseJsonBody($request);
 
-        $this->inertia->setRequest($request);
-        $this->inertia->setVersion($this->version($request));
-        $this->inertia->setRootView($this->rootView);
+        $this->inertia->begin($request, $this->version($request), $this->rootView);
         $this->inertia->share([
             'errors' => $this->inertia->always(fn(ServerRequestInterface $request): object => $this->resolveValidationErrors($request)),
         ]);
