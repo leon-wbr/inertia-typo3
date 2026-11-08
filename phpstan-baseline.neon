@@ -1,0 +1,307 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: Classes/Middleware/InertiaMiddleware.php
+
+		-
+			message: '#^Parameter \#1 \$metadata of static method LeonWbr\\Inertia\\Props\\ScrollMetadata\:\:fromArray\(\) expects array\{pageName\?\: string, previousPage\?\: int\|string\|null, nextPage\?\: int\|string\|null, currentPage\?\: int\|string\|null\}, non\-empty\-array\<string, mixed\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Classes/Props/ScrollProp.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: Classes/Service/InertiaContentElementRenderer.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 2
+			path: Classes/Service/InertiaContentElementRenderer.php
+
+		-
+			message: '#^Method LeonWbr\\Inertia\\Service\\InertiaContentElementRenderer\:\:renderRecord\(\) should return array\{CType\: string, data\: array\<mixed\>, html\: string\|null\} but returns array\{CType\: string, data\: mixed, html\: string\|null\}\.$#'
+			identifier: return.type
+			count: 1
+			path: Classes/Service/InertiaContentElementRenderer.php
+
+		-
+			message: '#^Parameter \#1 \$array of method LeonWbr\\Inertia\\Service\\InertiaContentElementRenderer\:\:convertKeysToCamelCase\(\) expects array\<mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Classes/Service/InertiaContentElementRenderer.php
+
+		-
+			message: '#^Method LeonWbr\\Inertia\\Service\\InertiaService\:\:getErrors\(\) should return array\<string, array\<string, list\<string\>\>\> but returns array\<mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: Classes/Service/InertiaService.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: Classes/Settings/PageSettings.php
+
+		-
+			message: '#^Cannot access offset ''prop'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Classes/Testing/AssertableInertia.php
+
+		-
+			message: '#^Cannot access offset string on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 5
+			path: Classes/Testing/AssertableInertia.php
+
+		-
+			message: '#^Parameter \#2 \$array of static method PHPUnit\\Framework\\Assert\:\:assertArrayHasKey\(\) expects array\<mixed\>\|ArrayAccess\<\(int\|string\), covariant mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 3
+			path: Classes/Testing/AssertableInertia.php
+
+		-
+			message: '#^Parameter \#2 \$array of static method PHPUnit\\Framework\\Assert\:\:assertArrayNotHasKey\(\) expects array\<mixed\>\|ArrayAccess\<\(int\|string\), covariant mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Classes/Testing/AssertableInertia.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: Classes/ViewHelpers/AppViewHelper.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: Tests/Functional/Fixtures/Extensions/InertiaTest/Classes/FeaturesListener.php
+
+		-
+			message: '#^Cannot access offset ''backend'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Functional/Frontend/InertiaFrontendTest.php
+
+		-
+			message: '#^Cannot access offset ''cacheConfigurations'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Functional/Frontend/InertiaFrontendTest.php
+
+		-
+			message: '#^Cannot access offset ''caching'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Functional/Frontend/InertiaFrontendTest.php
+
+		-
+			message: '#^Cannot access offset ''pages'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Functional/Frontend/InertiaFrontendTest.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: Tests/Functional/Frontend/InertiaFrontendTest.php
+
+		-
+			message: '#^Anonymous function should return string but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: Tests/Functional/Service/NavigationServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''current'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Functional/Service/NavigationServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''link'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Functional/Service/NavigationServiceTest.php
+
+		-
+			message: '#^Cannot access offset 0 on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: Tests/Functional/Service/NavigationServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \$items of static method LeonWbr\\Inertia\\Tests\\Functional\\Service\\NavigationServiceTest\:\:titles\(\) expects list\<array\<string, mixed\>\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Tests/Functional/Service/NavigationServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''errors'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Unit/Middleware/InertiaMiddlewareTest.php
+
+		-
+			message: '#^Cannot access offset ''onceProps'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Unit/Middleware/InertiaMiddlewareTest.php
+
+		-
+			message: '#^Cannot access offset ''props'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: Tests/Unit/Middleware/InertiaMiddlewareTest.php
+
+		-
+			message: '#^Method LeonWbr\\Inertia\\Tests\\Unit\\Middleware\\InertiaMiddlewareTest\:\:sharedErrors\(\) should return array\<string, mixed\> but returns mixed\.$#'
+			identifier: return.type
+			count: 1
+			path: Tests/Unit/Middleware/InertiaMiddlewareTest.php
+
+		-
+			message: '#^Parameter \#2 \$array of static method PHPUnit\\Framework\\Assert\:\:assertArrayNotHasKey\(\) expects array\<mixed\>\|ArrayAccess\<\(int\|string\), covariant mixed\>, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Tests/Unit/Middleware/InertiaMiddlewareTest.php
+
+		-
+			message: '#^Cannot access offset ''component'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Unit/Service/InertiaServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''props'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Unit/Service/InertiaServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''url'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Unit/Service/InertiaServiceTest.php
+
+		-
+			message: '#^Cannot access offset ''currentPage'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Unit/Service/PropsResolverTest.php
+
+		-
+			message: '#^Cannot access offset ''expiresAt'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Unit/Service/PropsResolverTest.php
+
+		-
+			message: '#^Cannot access offset ''items'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Unit/Service/PropsResolverTest.php
+
+		-
+			message: '#^Cannot access offset ''posts'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: Tests/Unit/Service/PropsResolverTest.php
+
+		-
+			message: '#^Cannot access offset ''pricing\-plans'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 2
+			path: Tests/Unit/Service/PropsResolverTest.php
+
+		-
+			message: '#^Cannot access offset ''prop'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Unit/Service/PropsResolverTest.php
+
+		-
+			message: '#^Cannot access offset ''reset'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Unit/Service/PropsResolverTest.php
+
+		-
+			message: '#^Parameter \#3 \$metadata of class LeonWbr\\Inertia\\Props\\ScrollProp constructor expects array\{pageName\?\: string, previousPage\?\: int\|string\|null, nextPage\?\: int\|string\|null, currentPage\?\: int\|string\|null\}\|\(callable\(mixed\)\: LeonWbr\\Inertia\\Props\\ProvidesScrollMetadata\)\|LeonWbr\\Inertia\\Props\\ProvidesScrollMetadata\|null, Closure\(array\)\: LeonWbr\\Inertia\\Props\\ScrollMetadata given\.$#'
+			identifier: argument.type
+			count: 1
+			path: Tests/Unit/Service/PropsResolverTest.php
+
+		-
+			message: '#^Cannot access offset ''coupon'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: Tests/Unit/Testing/AssertableInertiaTest.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 2
+			path: conformance/packages/conformance/Classes/EventListener/CasePages.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 2
+			path: conformance/packages/conformance/Classes/Middleware/CaseEndpoints.php
+
+		-
+			message: '#^Binary operation "\." between non\-falsy\-string and mixed results in an error\.$#'
+			identifier: binaryOp.invalid
+			count: 1
+			path: conformance/packages/conformance/Classes/ViewHelpers/ClientViewHelper.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: conformance/packages/conformance/Classes/ViewHelpers/ClientViewHelper.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 1
+			path: example/packages/sitepackage/Classes/EventListener/ExamplePagesListener.php
+
+		-
+			message: '#^Parameter \#1 \$value of function count expects array\|Countable, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: example/packages/sitepackage/Classes/EventListener/ExamplePagesListener.php
+
+		-
+			message: '#^Cannot access offset ''SYS'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: ext_localconf.php
+
+		-
+			message: '#^Cannot access offset ''fluid'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: ext_localconf.php
+
+		-
+			message: '#^Cannot access offset ''inertia'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: ext_localconf.php
+
+		-
+			message: '#^Cannot access offset ''namespaces'' on mixed\.$#'
+			identifier: offsetAccess.nonOffsetAccessible
+			count: 1
+			path: ext_localconf.php
