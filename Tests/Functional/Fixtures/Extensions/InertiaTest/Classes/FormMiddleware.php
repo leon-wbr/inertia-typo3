@@ -27,7 +27,7 @@ final class FormMiddleware implements MiddlewareInterface
         }
 
         $body = $request->getParsedBody();
-        $name = is_array($body) ? trim((string)($body['name'] ?? '')) : '';
+        $name = \is_array($body) ? trim((string)($body['name'] ?? '')) : '';
 
         if ($name === '') {
             $this->inertia->withErrors(['name' => ['Enter your name.', 'Names have letters.']]);

@@ -46,7 +46,7 @@ final class ExamplePagesListener
             $page = max(1, (int)($query['page'] ?? 1));
             $event->setComponent('Features');
             $event->addProp('stats', $this->inertia->defer(static fn(): array => [
-                'contentElements' => count($event->getProps()['contentElements'] ?? []),
+                'contentElements' => \count($event->getProps()['contentElements'] ?? []),
                 'generatedAt' => gmdate('c'),
             ]));
             $event->addProp('details', $this->inertia->optional(static fn(?ServerRequestInterface $request): array => [

@@ -84,7 +84,7 @@ class NavigationService
                 'uid' => $pageUid,
                 'title' => (string)(($page['nav_title'] ?? '') !== '' ? $page['nav_title'] : $page['title']),
                 'link' => (string)$scope->site->getRouter()->generateUri($pageUid, $parameters)->getPath(),
-                'active' => in_array($pageUid, $scope->rootLine, true),
+                'active' => \in_array($pageUid, $scope->rootLine, true),
                 'current' => $pageUid === $scope->currentPageId,
                 'children' => $this->buildLevel($scope, $pageUid, $levels - 1),
             ];
@@ -100,7 +100,7 @@ class NavigationService
     {
         $ids = [];
         $page = $pageRepository->getPage($pageId);
-        while ($page !== [] && count($ids) < 99) {
+        while ($page !== [] && \count($ids) < 99) {
             $ids[] = (int)$page['uid'];
             $pid = (int)($page['pid'] ?? 0);
             if ($pid === 0) {

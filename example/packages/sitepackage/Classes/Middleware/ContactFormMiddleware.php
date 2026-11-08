@@ -34,7 +34,7 @@ final class ContactFormMiddleware implements MiddlewareInterface
         $method = $request->getMethod();
         $pageInformation = $request->getAttribute('frontend.page.information');
         if (
-            !in_array($method, ['POST', 'PUT'], true)
+            !\in_array($method, ['POST', 'PUT'], true)
             || !$pageInformation instanceof PageInformation
             || (int)($pageInformation->getPageRecord()['layout'] ?? 0) !== self::LAYOUT
         ) {
@@ -42,11 +42,11 @@ final class ContactFormMiddleware implements MiddlewareInterface
         }
 
         $body = $request->getParsedBody();
-        $name = trim(is_array($body) ? (string)($body['name'] ?? '') : '');
+        $name = trim(\is_array($body) ? (string)($body['name'] ?? '') : '');
         if ($name === '') {
             $this->inertia->withErrors(['name' => 'Please enter your name.']);
         } else {
-            $this->inertia->flash('success', sprintf('Thanks, %s!', mb_substr($name, 0, 100)));
+            $this->inertia->flash('success', \sprintf('Thanks, %s!', mb_substr($name, 0, 100)));
         }
         $target = $request->getUri()->getPath();
 
