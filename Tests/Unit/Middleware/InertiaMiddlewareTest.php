@@ -224,6 +224,38 @@ final class InertiaMiddlewareTest extends UnitTestCase
         self::assertSame($this->inertia, $handler->request?->getAttribute('inertia'));
     }
 
+    #[Test]
+    public function oneServiceInstanceStartsEachRequestAfresh(): void
+    {
+        $extensionConfiguration = $this->createStub(ExtensionConfiguration::class);
+        $extensionConfiguration->method('get')->willReturn('');
+        // Shares a prop only for logged-in requests, as a sitepackage would.
+        $middleware = new class ($this->inertia, $extensionConfiguration) extends InertiaMiddleware {
+            public function share(ServerRequestInterface $request): array
+            {
+                return $request->hasHeader('X-User') ? ['user' => $request->getHeaderLine('X-User')] : [];
+            }
+        };
+        $headers = [Header::INERTIA => 'true', Header::VERSION => ''];
+
+        $first = $this->handler(function (ServerRequestInterface $request): ResponseInterface {
+            $this->inertia->share('cart', 3);
+            $this->inertia->encryptHistory();
+            $this->inertia->clearHistory();
+
+            return new HtmlResponse('ok');
+        });
+        $middleware->process($this->request('GET', $headers + ['X-User' => 'Ada']), $first);
+
+        $second = $this->handler(fn(ServerRequestInterface $request): ResponseInterface => $this->inertia->render('Page', [], $request));
+        $response = $middleware->process($this->request('GET', $headers), $second);
+        $page = json_decode((string)$response->getBody(), true, 512, JSON_THROW_ON_ERROR);
+
+        self::assertSame(['errors' => []], $page['props']);
+        self::assertArrayNotHasKey('encryptHistory', $page);
+        self::assertArrayNotHasKey('clearHistory', $page);
+    }
+
     /**
      * @param array<string, string> $headers
      * @return array<string, mixed>
