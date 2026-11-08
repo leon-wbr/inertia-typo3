@@ -95,7 +95,7 @@ class NavigationService
                 'uid' => $pageUid,
                 'title' => (string)(($page['nav_title'] ?? '') !== '' ? $page['nav_title'] : $page['title']),
                 'link' => (string)$site->getRouter()->generateUri($pageUid, $parameters)->getPath(),
-                'active' => in_array($pageUid, $rootLine, true),
+                'active' => \in_array($pageUid, $rootLine, true),
                 'current' => $pageUid === $currentPageId,
                 'children' => $this->buildLevel($context, $pageRepository, $site, $language, $pageUid, $levels - 1, $currentPageId, $rootLine),
             ];
@@ -111,7 +111,7 @@ class NavigationService
     {
         $ids = [];
         $page = $pageRepository->getPage($pageId);
-        while ($page !== [] && count($ids) < 99) {
+        while ($page !== [] && \count($ids) < 99) {
             $ids[] = (int)$page['uid'];
             $pid = (int)($page['pid'] ?? 0);
             if ($pid === 0) {

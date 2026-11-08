@@ -95,7 +95,7 @@ class InertiaService
      */
     public function share(string|array $key, mixed $value = null): void
     {
-        if (is_array($key)) {
+        if (\is_array($key)) {
             $this->sharedProps = array_merge($this->sharedProps, $key);
         } else {
             $this->sharedProps[$key] = $value;
@@ -234,7 +234,7 @@ class InertiaService
     {
         $errors = $this->getSessionData(SessionKey::ERRORS, $request);
 
-        return is_array($errors) ? $errors : [];
+        return \is_array($errors) ? $errors : [];
     }
 
     /**
@@ -261,7 +261,7 @@ class InertiaService
      */
     public function flash(\BackedEnum|\UnitEnum|string|array $key, mixed $value = null): static
     {
-        if (!is_array($key)) {
+        if (!\is_array($key)) {
             $key = [Key::from($key) => $value];
         }
 
@@ -277,7 +277,7 @@ class InertiaService
     {
         $flash = $this->getSessionData(SessionKey::FLASH_DATA, $request);
 
-        return is_array($flash) ? $flash : [];
+        return \is_array($flash) ? $flash : [];
     }
 
     /**
@@ -438,7 +438,7 @@ class InertiaService
 
         if ($typoScript instanceof FrontendTypoScript && $typoScript->hasSetup()) {
             $configured = $typoScript->getSetupArray()['plugin.']['tx_inertia.']['view.']['templateRootPaths.'] ?? [];
-            if (is_array($configured)) {
+            if (\is_array($configured)) {
                 $paths = array_replace($paths, array_filter($configured, 'is_string'));
                 ksort($paths);
             }
