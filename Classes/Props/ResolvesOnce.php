@@ -72,7 +72,7 @@ trait ResolvesOnce
 
     public function until(\DateTimeInterface|\DateInterval|int $delay): static
     {
-        $now = new \DateTimeImmutable();
+        $now = (new \DateTimeImmutable())->setTimestamp($this->now());
         $this->ttl = match (true) {
             $delay instanceof \DateTimeInterface => max(0, $delay->getTimestamp() - $now->getTimestamp()),
             $delay instanceof \DateInterval => max(0, $now->add($delay)->getTimestamp() - $now->getTimestamp()),
@@ -88,6 +88,14 @@ trait ResolvesOnce
             return null;
         }
 
-        return (time() + $this->ttl) * 1000;
+        return ($this->now() + $this->ttl) * 1000;
+    }
+
+    /**
+     * The current Unix time; the one clock the expiry is computed with.
+     */
+    protected function now(): int
+    {
+        return time();
     }
 }
