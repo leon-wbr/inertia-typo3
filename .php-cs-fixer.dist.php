@@ -14,6 +14,7 @@ $finder = (new PhpCsFixer\Finder())
         __DIR__ . '/conformance/packages/conformance/Configuration',
     ])
     ->append([
+        __DIR__ . '/ext_emconf.php',
         __DIR__ . '/ext_localconf.php',
         __DIR__ . '/example/config/system/additional.php',
         __DIR__ . '/example/packages/sitepackage/ext_localconf.php',

@@ -1,0 +1,91 @@
+name: Publish to TER
+
+# A version tag (v1.2.3) publishes that version to the TYPO3 Extension
+# Repository with tailor. Packagist picks up the same tag by itself.
+# Needs the repository secret TYPO3_API_TOKEN, a TER access token for the
+# extension key in composer.json (extra.typo3/cms.extension-key).
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to build (v1.2.3). Builds the artefact only, unless publish is ticked.
+        required: true
+      publish:
+        description: Also publish it to TER
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Build and publish to TER
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+      PUBLISH: ${{ github.event_name == 'push' || inputs.publish }}
+      TYPO3_API_TOKEN: ${{ secrets.TYPO3_API_TOKEN }}
+      TYPO3_EXCLUDE_FROM_PACKAGING: Build/Release/ExcludeFromPackaging.php
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+
+      - name: Check the tag and the version in composer.json and ext_emconf.php
+        run: |
+          if ! [[ "$TAG" =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+            echo "::error::$TAG is not a version tag like v1.2.3. TER only takes three-part versions."
+            exit 1
+          fi
+          version="${TAG#v}"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          composer_version=$(jq -r '.extra["typo3/cms"].version // empty' composer.json)
+          emconf_version=$(php -r '$_EXTKEY = "inertia"; include "ext_emconf.php"; echo $EM_CONF[$_EXTKEY]["version"];')
+          if [[ "$composer_version" != "$version" || "$emconf_version" != "$version" ]]; then
+            echo "::error::The tag is $version, but composer.json says '$composer_version' and ext_emconf.php '$emconf_version'. Run 'tailor set-version $version', commit, and tag that commit."
+            exit 1
+          fi
+
+      - name: Upload comment
+        run: |
+          git fetch --force origin "refs/tags/$TAG:refs/tags/$TAG"
+          comment=$(git tag -l "$TAG" --format='%(contents:subject)')
+          if [[ -z "${comment// }" ]]; then
+            comment="Released version $VERSION"
+          fi
+          comment="$comment (release notes: https://github.com/${{ github.repository }}/releases/tag/$TAG)"
+          echo "COMMENT=$comment" >> "$GITHUB_ENV"
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: intl, mbstring, json, zip, curl
+          tools: composer:v2, typo3/tailor
+          coverage: none
+
+      - name: Build the artefact
+        run: |
+          tailor create-artefact "$VERSION"
+          unzip -l "tailor-version-artefact/inertia_$VERSION.zip"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: inertia_${{ env.VERSION }}
+          path: tailor-version-artefact/inertia_${{ env.VERSION }}.zip
+
+      - name: Publish to TER
+        if: env.PUBLISH == 'true'
+        run: |
+          if [[ -z "$TYPO3_API_TOKEN" ]]; then
+            echo "::error::The repository secret TYPO3_API_TOKEN is not set."
+            exit 1
+          fi
+          tailor ter:publish \
+            --comment "$COMMENT" \
+            --artefact "tailor-version-artefact/inertia_$VERSION.zip" \
+            "$VERSION"
