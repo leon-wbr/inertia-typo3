@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace LeonWbr\Inertia\Service;
 
+use LeonWbr\Inertia\Navigation\MenuScope;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Context\Context;
-use TYPO3\CMS\Core\Context\LanguageAspect;
 use TYPO3\CMS\Core\Context\LanguageAspectFactory;
 use TYPO3\CMS\Core\Domain\Repository\PageRepository;
 use TYPO3\CMS\Core\Routing\PageArguments;
@@ -48,56 +48,45 @@ class NavigationService
         $currentPageId = $routing instanceof PageArguments ? $routing->getPageId() : 0;
         $rootLine = $currentPageId > 0 ? $this->rootLineIds($pageRepository, $currentPageId) : [];
 
-        return $this->buildLevel(
-            $context,
+        $scope = new MenuScope(
             $pageRepository,
+            $context->getAspect('language'),
             $site,
             $language instanceof SiteLanguage ? $language : null,
-            $rootPageId ?? $site->getRootPageId(),
-            $levels,
             $currentPageId,
             $rootLine,
         );
+
+        return $this->buildLevel($scope, $rootPageId ?? $site->getRootPageId(), $levels);
     }
 
     /**
-     * @param list<int> $rootLine
      * @return list<array{uid: int, title: string, link: string, active: bool, current: bool, children: list<array<string, mixed>>}>
      */
-    protected function buildLevel(
-        Context $context,
-        PageRepository $pageRepository,
-        Site $site,
-        ?SiteLanguage $language,
-        int $parentId,
-        int $levels,
-        int $currentPageId,
-        array $rootLine,
-    ): array {
+    protected function buildLevel(MenuScope $scope, int $parentId, int $levels): array
+    {
         if ($levels < 1) {
             return [];
         }
 
-        /** @var LanguageAspect $languageAspect */
-        $languageAspect = $context->getAspect('language');
+        $parameters = $scope->language !== null ? ['_language' => $scope->language] : [];
         $items = [];
-        foreach ($pageRepository->getMenu($parentId) as $page) {
+        foreach ($scope->pages->getMenu($parentId) as $page) {
             // Same rules as core menus: hidden in menu, or not available in
             // this language (no translation with a strict fallback).
-            if (!empty($page['nav_hide']) || !$pageRepository->isPageSuitableForLanguage($page, $languageAspect)) {
+            if (!empty($page['nav_hide']) || !$scope->pages->isPageSuitableForLanguage($page, $scope->languageAspect)) {
                 continue;
             }
 
             $pageUid = (int)$page['uid'];
-            $parameters = $language instanceof SiteLanguage ? ['_language' => $language] : [];
 
             $items[] = [
                 'uid' => $pageUid,
                 'title' => (string)(($page['nav_title'] ?? '') !== '' ? $page['nav_title'] : $page['title']),
-                'link' => (string)$site->getRouter()->generateUri($pageUid, $parameters)->getPath(),
-                'active' => in_array($pageUid, $rootLine, true),
-                'current' => $pageUid === $currentPageId,
-                'children' => $this->buildLevel($context, $pageRepository, $site, $language, $pageUid, $levels - 1, $currentPageId, $rootLine),
+                'link' => (string)$scope->site->getRouter()->generateUri($pageUid, $parameters)->getPath(),
+                'active' => in_array($pageUid, $scope->rootLine, true),
+                'current' => $pageUid === $scope->currentPageId,
+                'children' => $this->buildLevel($scope, $pageUid, $levels - 1),
             ];
         }
 
