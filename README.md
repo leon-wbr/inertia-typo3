@@ -1,10 +1,19 @@
-> **Status:** before 1.0. The adapter implements the Inertia 3 protocol and is tested against the official React, Vue and Svelte clients, but its PHP API can still change between minor releases until 1.0. [Compared with inertia-laravel](#compared-with-inertia-laravel) lists what is missing. Feedback and issues are welcome.
+> **Status:** before 1.0. [v0.1.0](https://packagist.org/packages/leon-wbr/inertia-typo3) is on Packagist. The adapter implements the Inertia 3 protocol and is tested against the official React, Vue and Svelte clients, but its PHP API can still change between minor releases until 1.0. [Compared with inertia-laravel](#compared-with-inertia-laravel) lists what is missing. Feedback and issues are welcome.
 
 # TYPO3 Inertia Adapter
 
 A TYPO3 extension providing the server side of [Inertia.js](https://inertiajs.com/) 3: TYPO3 keeps routing, languages, access, redirects and the page cache, and answers with Inertia page objects that a React, Vue or Svelte frontend renders.
 
 It follows the official [inertia-laravel](https://github.com/inertiajs/inertia-laravel) 3.x adapter where TYPO3 allows.
+
+Contents:
+
+- [Features](#features) and [requirements](#requirements)
+- [Quickstart with DDEV](#quickstart-with-ddev) and [verification](#verification)
+- [Installation in your own project](#installation-in-your-own-project)
+- [Usage](#usage): shared props, page components, forms, flash data, once props, infinite scroll, testing and settings
+- [Compared with inertia-laravel](#compared-with-inertia-laravel)
+- [Roadmap](#roadmap), [support](#support), [contributing](#contributing) and [license](#license)
 
 ## Features
 
@@ -53,7 +62,7 @@ cd example
 ddev vite
 ```
 
-While it runs, it writes `example/var/vite-dev-server`, and TYPO3 loads assets from the dev server with hot module replacement; flush the TYPO3 caches (`ddev exec example/vendor/bin/typo3 cache:flush`) for already cached pages. Stop it (Ctrl+C) and TYPO3 serves the production build again. If the dev server crashed instead, delete `example/var/vite-dev-server` yourself.
+While it runs, it writes `example/var/vite-dev-server`, and TYPO3 loads assets from the dev server with hot module replacement; flush the TYPO3 caches (`ddev exec -d /var/www/html/example vendor/bin/typo3 cache:flush`) for already cached pages. Stop it (Ctrl+C) and TYPO3 serves the production build again. If the dev server crashed instead, delete `example/var/vite-dev-server` yourself.
 
 The DDEV project runs PHP 8.5, MariaDB 10.11 and Node.js 26 (LTS) with pnpm 12, and needs DDEV 1.25 or later.
 
@@ -68,11 +77,12 @@ runs everything from scratch and exits non-zero on the first failure:
 1. `composer install`, `pnpm install`, a fresh database, `typo3 setup` and the example content;
 2. `composer validate`, PHP CS Fixer and PHPStan (level 8);
 3. PHPUnit unit and functional tests (TYPO3 testing framework, SQLite);
-4. ESLint, Prettier and the TypeScript 7 typecheck;
-5. a Vite production build;
-6. Playwright end-to-end tests against the site serving that build: first load, Inertia navigation, asset version mismatch, form redirects with validation errors and flash data, query strings, partial reloads, deferred, optional, merge and once props, infinite scroll, and the second language.
+4. the Inertia parity check: the protocol surface in `Build/Parity/parity.json` against the installed `@inertiajs/core` (see [TODO.md](TODO.md#keeping-this-list-in-sync));
+5. ESLint, Prettier and the TypeScript 7 typecheck;
+6. a Vite production build;
+7. Playwright end-to-end tests against the site serving that build: first load, Inertia navigation, asset version mismatch, form redirects with validation errors and flash data, query strings, partial reloads, deferred, optional, merge and once props, infinite scroll, and the second language.
 
-GitHub Actions runs the same command on every push and pull request. `ddev outdated` lists outdated Composer and pnpm dependencies of the example.
+GitHub Actions runs the same command on pushes to `main` and on pull requests. `ddev outdated` lists outdated Composer and pnpm dependencies of the example.
 
 ### Conformance with the official clients
 
@@ -80,13 +90,21 @@ GitHub Actions runs the same command on every push and pull request. `ddev outda
 ddev conformance
 ```
 
-runs the official Inertia clients, `@inertiajs/react`, `@inertiajs/vue3` and `@inertiajs/svelte`, against a TYPO3 project of their own with this adapter. Every case of the protocol conformance list is a test, and known gaps are expected failures. The run writes a case × client matrix to `conformance/matrix.md`. GitHub Actions runs it on every push and shows the matrix in the job summary. See [conformance/README.md](conformance/README.md).
+runs the official Inertia clients, `@inertiajs/react`, `@inertiajs/vue3` and `@inertiajs/svelte`, against a TYPO3 project of their own with this adapter. Every case of the protocol conformance list is a test, and known gaps are expected failures. After a run, the case × client matrix is in `conformance/matrix.md`. GitHub Actions runs it on every branch push and shows the matrix in the job summary. See [conformance/README.md](conformance/README.md).
 
 ## Installation in your own project
 
 ```sh
 composer require leon-wbr/inertia-typo3
 ```
+
+The root view below loads the frontend with [praetorius/vite-asset-collector](https://github.com/s2b/vite-asset-collector), as the example does. The adapter doesn't require it, so install it too if you want the same setup:
+
+```sh
+composer require praetorius/vite-asset-collector
+```
+
+Any other way of adding your script and style tags works as well. Then point the extension setting `manifestPath` at your build's manifest (see [Settings](#settings)), because its hash is the asset version.
 
 Then:
 
@@ -104,7 +122,27 @@ Then:
    </html>
    ```
 
-3. Set up the client with `createInertiaApp` from `@inertiajs/react` (or the Vue or Svelte adapter).
+3. Set up the client. For React:
+
+   ```sh
+   pnpm add @inertiajs/react react react-dom
+   ```
+
+   ```tsx
+   import { createInertiaApp, type ResolvedComponent } from "@inertiajs/react";
+   import { createRoot } from "react-dom/client";
+
+   const pages = import.meta.glob<{ default: ResolvedComponent }>("./Pages/**/*.tsx");
+
+   createInertiaApp({
+     resolve: async (name) => (await pages[`./Pages/${name}.tsx`]()).default,
+     setup({ el, App, props }) {
+       createRoot(el).render(<App {...props} />);
+     },
+   });
+   ```
+
+   TYPO3 pages render the component `Default` (see [Page component and props](#page-component-and-props)), so start with `Pages/Default.tsx`. Vue and Svelte work the same way with `@inertiajs/vue3` and `@inertiajs/svelte`. The example's [`main.tsx`](example/packages/sitepackage/Resources/Private/src/main.tsx) is a complete entry point.
 
 ### Starting from the example sitepackage
 
@@ -349,6 +387,10 @@ The adapter follows [inertia-laravel](https://github.com/inertiajs/inertia-larav
 - Server-side rendering, in its own pull request.
 - Rescued deferred props and BigInt preservation, if there is demand.
 - Publishing to the TYPO3 Extension Repository.
+
+## Support
+
+Questions and ideas go to [GitHub Discussions](https://github.com/leon-wbr/inertia-typo3/discussions), bugs to [GitHub Issues](https://github.com/leon-wbr/inertia-typo3/issues).
 
 ## Contributing
 
