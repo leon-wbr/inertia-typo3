@@ -1,9 +1,13 @@
+# Synced from the platform repo (templates/php-typo3). Change it there, then sync.
 name: Publish to TER
 
-# A version tag (v1.2.3) publishes that version to the TYPO3 Extension
-# Repository with tailor. Packagist picks up the same tag by itself.
-# Needs the repository secret TYPO3_API_TOKEN, a TER access token for the
-# extension key in composer.json (extra.typo3/cms.extension-key).
+# A version tag (v1.2.3) on main publishes that version to the TYPO3 Extension
+# Repository with tailor, after the full test suite passed on the tagged commit and
+# you approved the run in the "ter" environment. Packagist picks up the same tag by
+# itself, outside Actions: the tag ruleset (no moving or deleting v* tags) is what
+# protects that side.
+# Needs the secret TYPO3_API_TOKEN (in the ter environment), a TER access token for
+# the extension key in composer.json (extra.typo3/cms.extension-key).
 on:
   push:
     tags:
@@ -21,35 +25,78 @@ on:
 permissions:
   contents: read
 
-jobs:
-  publish:
-    name: Build and publish to TER
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      TAG: ${{ inputs.tag || github.ref_name }}
-      PUBLISH: ${{ github.event_name == 'push' || inputs.publish }}
-      TYPO3_API_TOKEN: ${{ secrets.TYPO3_API_TOKEN }}
-      TYPO3_EXCLUDE_FROM_PACKAGING: Build/Release/ExcludeFromPackaging.php
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+concurrency:
+  group: publish-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
 
-      - name: Check the tag and the version in composer.json and ext_emconf.php
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
+
+jobs:
+  check-tag:
+    name: Check the tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ env.TAG }}
+          fetch-depth: 0
+      - name: Tagged commit is on main
+        run: |
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "::error::$TAG is not on main. Tag a commit that is on main."
+            exit 1
+          fi
+      - id: version
+        name: Check the tag and the version in composer.json and ext_emconf.php
         run: |
           if ! [[ "$TAG" =~ ^v[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
             echo "::error::$TAG is not a version tag like v1.2.3. TER only takes three-part versions."
             exit 1
           fi
           version="${TAG#v}"
-          echo "VERSION=$version" >> "$GITHUB_ENV"
           composer_version=$(jq -r '.extra["typo3/cms"].version // empty' composer.json)
           emconf_version=$(php -r '$_EXTKEY = "inertia"; include "ext_emconf.php"; echo $EM_CONF[$_EXTKEY]["version"];')
           if [[ "$composer_version" != "$version" || "$emconf_version" != "$version" ]]; then
             echo "::error::The tag is $version, but composer.json says '$composer_version' and ext_emconf.php '$emconf_version'. Run 'tailor set-version $version', commit, and tag that commit."
             exit 1
           fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+  # The same suite as ci.yml, run again on the tagged commit: publishing never
+  # relies on a CI run that may have been for another commit, or never finished.
+  verify:
+    name: ddev verify
+    needs: check-tag
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ env.TAG }}
+      - uses: ddev/github-action-setup-ddev@fdf2f5c97943bae638f31df6df86f1defa6210c0 # v1.12.1
+        with:
+          autostart: true
+      - run: ddev verify
+
+  publish:
+    name: Build and publish to TER
+    needs: [check-tag, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ter
+    env:
+      VERSION: ${{ needs.check-tag.outputs.version }}
+      PUBLISH: ${{ github.event_name == 'push' || inputs.publish }}
+      TYPO3_API_TOKEN: ${{ secrets.TYPO3_API_TOKEN }}
+      TYPO3_EXCLUDE_FROM_PACKAGING: Build/Release/ExcludeFromPackaging.php
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: refs/tags/${{ env.TAG }}
 
       - name: Upload comment
         run: |
@@ -61,7 +108,7 @@ jobs:
           comment="$comment (release notes: https://github.com/${{ github.repository }}/releases/tag/$TAG)"
           echo "COMMENT=$comment" >> "$GITHUB_ENV"
 
-      - uses: shivammathur/setup-php@v2
+      - uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962 # 2.40.0
         with:
           php-version: '8.4'
           extensions: intl, mbstring, json, zip, curl
@@ -73,7 +120,7 @@ jobs:
           tailor create-artefact "$VERSION"
           unzip -l "tailor-version-artefact/inertia_$VERSION.zip"
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: inertia_${{ env.VERSION }}
           path: tailor-version-artefact/inertia_${{ env.VERSION }}.zip
@@ -82,7 +129,7 @@ jobs:
         if: env.PUBLISH == 'true'
         run: |
           if [[ -z "$TYPO3_API_TOKEN" ]]; then
-            echo "::error::The repository secret TYPO3_API_TOKEN is not set."
+            echo "::error::The secret TYPO3_API_TOKEN is not set (ter environment or repository)."
             exit 1
           fi
           tailor ter:publish \

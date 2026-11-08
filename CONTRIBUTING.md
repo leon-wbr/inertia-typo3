@@ -27,7 +27,7 @@ A release is a version tag. Packagist reads the tag, and the [publish workflow](
 3. Tag that commit and push the tag: `git tag -a v1.2.3 -m "Short summary"` and `git push origin v1.2.3`. The tag message becomes the TER upload comment.
 4. Write the GitHub release notes for the tag.
 
-The workflow stops if the tag and the two version fields disagree. It needs the repository secret `TYPO3_API_TOKEN`. To check the TER artefact without publishing, run the workflow by hand on an existing tag and leave "publish" unticked; it uploads the zip as a workflow artifact.
+The workflow stops unless the tagged commit is on `main` and the tag matches both version fields. It then runs `ddev verify` on the tagged commit (the same suite as CI) and waits for approval in the `ter` environment, which holds the `TYPO3_API_TOKEN` secret, before uploading. Packagist doesn't wait for any of this, so tag only a commit whose CI is green. Pushed `v*` tags can't be moved or deleted. To check the TER artefact without publishing, run the workflow by hand on an existing tag and leave "publish" unticked; it uploads the zip as a workflow artifact.
 
 ## Need Help?
 
