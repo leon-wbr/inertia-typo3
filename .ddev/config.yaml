@@ -17,6 +17,8 @@ web_environment:
     - PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright
 nodejs_version: "26"
 corepack_enable: true
+# The coverage driver for `composer test:coverage` (ddev verify)
+webimage_extra_packages: ["php${DDEV_PHP_VERSION}-pcov"]
 
 # Key features of DDEV's config.yaml:
 

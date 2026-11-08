@@ -23,17 +23,11 @@ step "composer validate"
 composer validate --no-check-publish --no-interaction
 composer validate --no-check-publish --no-interaction "$ROOT/composer.json"
 
-step "PHP CS Fixer"
-vendor/bin/php-cs-fixer check --config="$ROOT/.php-cs-fixer.dist.php" --show-progress=none
+step "composer check (PHP CS Fixer, PHPStan, unit and functional tests)"
+composer check
 
-step "PHPStan"
-vendor/bin/phpstan analyse --configuration="$ROOT/phpstan.neon" --no-progress --memory-limit=1G
-
-step "PHPUnit: unit tests"
-vendor/bin/phpunit --configuration "$ROOT/Build/phpunit/UnitTests.xml"
-
-step "PHPUnit: functional tests"
-vendor/bin/phpunit --configuration "$ROOT/Build/phpunit/FunctionalTests.xml"
+step "Unit test coverage"
+composer test:coverage
 
 step "Inertia parity (Build/Parity/parity.json against the installed @inertiajs/core)"
 node --test "$ROOT/Build/Scripts/"

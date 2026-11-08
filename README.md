@@ -76,13 +76,15 @@ runs everything from scratch and exits non-zero on the first failure:
 
 1. `composer install`, `pnpm install`, a fresh database, `typo3 setup` and the example content;
 2. `composer validate`, PHP CS Fixer and PHPStan (level 8);
-3. PHPUnit unit and functional tests (TYPO3 testing framework, SQLite);
+3. PHPUnit unit and functional tests (TYPO3 testing framework, SQLite), and the unit tests again with pcov, failing below the minimum line coverage set in `example/composer.json`;
 4. the Inertia parity check: the protocol surface in `Build/Parity/parity.json` against the installed `@inertiajs/core` (see [TODO.md](TODO.md#keeping-this-list-in-sync));
 5. ESLint, Prettier and the TypeScript 7 typecheck;
 6. a Vite production build;
 7. Playwright end-to-end tests against the site serving that build: first load, Inertia navigation, asset version mismatch, form redirects with validation errors and flash data, query strings, partial reloads, deferred, optional, merge and once props, infinite scroll, and the second language.
 
 GitHub Actions runs the same command on pushes to `main` and on pull requests. `ddev outdated` lists outdated Composer and pnpm dependencies of the example.
+
+For the PHP part alone, run `composer check` in `example/` (code style, PHPStan and both test suites, without DDEV once `composer install` has run there), or one of `composer cs`, `cs:fix`, `stan`, `test:unit`, `test:functional` and `test:coverage` (needs pcov or Xdebug).
 
 ### Conformance with the official clients
 
