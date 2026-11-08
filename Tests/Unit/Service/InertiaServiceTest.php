@@ -185,12 +185,12 @@ final class InertiaServiceTest extends UnitTestCase
         self::assertSame([], $inertia->getErrors());
     }
 
-    #[Test]
-    public function errorsAndFlashLiveInTheFrontendUserSession(): void
+    /**
+     * @param \ArrayObject<string, mixed> $session
+     */
+    private function userWithSession(\ArrayObject $session): FrontendUserAuthentication
     {
         $user = $this->createStub(FrontendUserAuthentication::class);
-        /** @var \ArrayObject<string, mixed> $session */
-        $session = new \ArrayObject();
         $user->method('getSessionData')->willReturnCallback(static fn(string $key): mixed => $session[$key] ?? null);
         $user->method('setSessionData')->willReturnCallback(static function (string $key, mixed $value) use ($session): void {
             if ($value === null) {
@@ -199,6 +199,16 @@ final class InertiaServiceTest extends UnitTestCase
                 $session[$key] = $value;
             }
         });
+
+        return $user;
+    }
+
+    #[Test]
+    public function errorsAndFlashLiveInTheFrontendUserSession(): void
+    {
+        /** @var \ArrayObject<string, mixed> $session */
+        $session = new \ArrayObject();
+        $user = $this->userWithSession($session);
 
         $inertia = $this->service();
         $inertia->setRequest($this->inertiaRequest()->withAttribute('frontend.user', $user));
@@ -209,6 +219,26 @@ final class InertiaServiceTest extends UnitTestCase
             [SessionKey::ERRORS => ['default' => ['name' => ['Required.']]], SessionKey::FLASH_DATA => ['status' => 'Saved']],
             $session->getArrayCopy(),
         );
+    }
+
+    #[Test]
+    public function errorsAndFlashAreWrittenToTheSessionOfTheGivenRequest(): void
+    {
+        /** @var \ArrayObject<string, mixed> $stored */
+        $stored = new \ArrayObject();
+        /** @var \ArrayObject<string, mixed> $given */
+        $given = new \ArrayObject();
+        $request = $this->inertiaRequest()->withAttribute('frontend.user', $this->userWithSession($given));
+
+        $inertia = $this->service();
+        $inertia->setRequest($this->inertiaRequest()->withAttribute('frontend.user', $this->userWithSession($stored)));
+        $inertia->withErrors(['name' => 'Required.'], 'default', $request);
+        $inertia->flash('status', 'Saved', $request);
+
+        self::assertSame([], $stored->getArrayCopy());
+        self::assertSame(['default' => ['name' => ['Required.']]], $inertia->pullErrors($request));
+        self::assertSame(['status' => 'Saved'], $inertia->pullFlashed($request));
+        self::assertSame([], $given->getArrayCopy());
     }
 
     #[Test]
