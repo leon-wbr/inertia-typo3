@@ -11,6 +11,7 @@ use LeonWbr\Inertia\Props\Mergeable;
 use LeonWbr\Inertia\Props\Onceable;
 use LeonWbr\Inertia\Props\ScrollProp;
 use LeonWbr\Inertia\Support\Header;
+use LeonWbr\Inertia\Support\PropExclusion;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
@@ -108,7 +109,8 @@ final class PropsResolver
                 continue;
             }
 
-            if (!$this->isPartial && $this->excludeFromInitialResponse($prop, $path)) {
+            if (!$this->isPartial && ($exclusion = $this->exclusionFor($prop, $path)) !== null) {
+                $this->recordExcluded($exclusion, $prop, $path);
                 continue;
             }
 
@@ -117,7 +119,8 @@ final class PropsResolver
             // A closure may return a prop type; unwrap it one more level.
             if ($value !== $prop && self::isPropType($value)) {
                 $prop = $value;
-                if (!$this->isPartial && $this->excludeFromInitialResponse($prop, $path)) {
+                if (!$this->isPartial && ($exclusion = $this->exclusionFor($prop, $path)) !== null) {
+                    $this->recordExcluded($exclusion, $prop, $path);
                     continue;
                 }
                 $value = $this->resolveValue($prop);
@@ -147,44 +150,51 @@ final class PropsResolver
     }
 
     /**
-     * Props left out of this response, each with the metadata the client
-     * needs to load or keep it.
+     * Whether, and why, a prop is left out of the initial response. Has no
+     * side effects; recordExcluded() tells the client about the prop.
      */
-    private function excludeFromInitialResponse(mixed $prop, string $path): bool
+    private function exclusionFor(mixed $prop, string $path): ?PropExclusion
     {
-        // Optional and deferred props are never sent with the page.
-        if ($prop instanceof IgnoreFirstLoad) {
-            if ($prop instanceof Deferrable && $prop->shouldDefer() && !$this->wasAlreadyLoadedByClient($prop, $path)) {
-                $this->deferredProps[$prop->group()][] = $path;
-            }
-            if ($prop instanceof Mergeable && $prop->shouldMerge()) {
-                $this->collectMergeableMetadata($path, $prop);
-            }
-            if ($prop instanceof Onceable && $prop->shouldResolveOnce()) {
-                $this->collectOnceMetadata($path, $prop);
-            }
+        return match (true) {
+            $prop instanceof IgnoreFirstLoad => PropExclusion::IgnoredOnFirstLoad,
+            $prop instanceof Deferrable && $prop->shouldDefer() => PropExclusion::Deferred,
+            $this->isInertia && $this->wasAlreadyLoadedByClient($prop, $path) => PropExclusion::AlreadyOnClient,
+            default => null,
+        };
+    }
 
-            return true;
+    /**
+     * Records the metadata the client needs to load or keep a prop that is
+     * left out of the response.
+     */
+    private function recordExcluded(PropExclusion $exclusion, mixed $prop, string $path): void
+    {
+        switch ($exclusion) {
+            case PropExclusion::IgnoredOnFirstLoad:
+                if ($prop instanceof Deferrable && $prop->shouldDefer() && !$this->wasAlreadyLoadedByClient($prop, $path)) {
+                    $this->deferredProps[$prop->group()][] = $path;
+                }
+                if ($prop instanceof Mergeable && $prop->shouldMerge()) {
+                    $this->collectMergeableMetadata($path, $prop);
+                }
+                if ($prop instanceof Onceable && $prop->shouldResolveOnce()) {
+                    $this->collectOnceMetadata($path, $prop);
+                }
+                break;
+            case PropExclusion::Deferred:
+                if ($prop instanceof Deferrable) {
+                    $this->deferredProps[$prop->group()][] = $path;
+                }
+                if ($prop instanceof Mergeable && $prop->shouldMerge()) {
+                    $this->collectMergeableMetadata($path, $prop);
+                }
+                break;
+            case PropExclusion::AlreadyOnClient:
+                if ($prop instanceof Onceable) {
+                    $this->collectOnceMetadata($path, $prop);
+                }
+                break;
         }
-
-        // Scroll props can opt in to deferral.
-        if ($prop instanceof Deferrable && $prop->shouldDefer()) {
-            $this->deferredProps[$prop->group()][] = $path;
-            if ($prop instanceof Mergeable && $prop->shouldMerge()) {
-                $this->collectMergeableMetadata($path, $prop);
-            }
-
-            return true;
-        }
-
-        // Once props the client already has.
-        if ($this->isInertia && $this->wasAlreadyLoadedByClient($prop, $path)) {
-            $this->collectOnceMetadata($path, $prop);
-
-            return true;
-        }
-
-        return false;
     }
 
     private function wasAlreadyLoadedByClient(mixed $prop, string $path): bool
@@ -213,12 +223,8 @@ final class PropsResolver
         }
     }
 
-    private function collectOnceMetadata(string $path, mixed $prop): void
+    private function collectOnceMetadata(string $path, Onceable $prop): void
     {
-        if (!$prop instanceof Onceable || !$prop->shouldResolveOnce()) {
-            return;
-        }
-
         if ($this->isPartial && !$this->isIncludedInPartialMetadata($path)) {
             return;
         }
