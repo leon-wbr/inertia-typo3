@@ -87,6 +87,27 @@ final class AssertableInertiaTest extends UnitTestCase
     }
 
     #[Test]
+    public function aNullPropExists(): void
+    {
+        $page = self::page();
+        $page['props']['coupon'] = null;
+
+        AssertableInertia::fromArray($page)
+            ->has('coupon')
+            ->where('coupon', null)
+            ->missing('coupon.code');
+    }
+
+    #[Test]
+    public function whereFailsForAMissingProp(): void
+    {
+        $this->expectException(AssertionFailedError::class);
+        $this->expectExceptionMessage('Inertia prop [coupon] does not exist.');
+
+        AssertableInertia::fromArray(self::page())->where('coupon', null);
+    }
+
+    #[Test]
     public function failsForAWrongCount(): void
     {
         $this->expectException(AssertionFailedError::class);

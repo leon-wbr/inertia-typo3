@@ -100,10 +100,9 @@ final class AssertableInertia
      */
     public function has(string $path, ?int $count = null): self
     {
-        PHPUnit::assertTrue($this->propExists($path), sprintf('Inertia prop [%s] does not exist.', $path));
+        $value = $this->existingProp($path);
 
         if ($count !== null) {
-            $value = $this->prop($path);
             PHPUnit::assertIsArray($value, sprintf('Inertia prop [%s] is not an array.', $path));
             PHPUnit::assertCount($count, $value, sprintf('Inertia prop [%s] does not have %d items.', $path, $count));
         }
@@ -125,7 +124,7 @@ final class AssertableInertia
 
     public function missing(string $path): self
     {
-        PHPUnit::assertFalse($this->propExists($path), sprintf('Inertia prop [%s] exists, but should be missing.', $path));
+        PHPUnit::assertFalse($this->lookup($path)[0], sprintf('Inertia prop [%s] exists, but should be missing.', $path));
 
         return $this;
     }
@@ -135,8 +134,7 @@ final class AssertableInertia
      */
     public function where(string $path, mixed $expected): self
     {
-        $this->has($path);
-        $actual = $this->prop($path);
+        $actual = $this->existingProp($path);
 
         if ($expected instanceof \Closure) {
             PHPUnit::assertTrue($expected($actual) === true, sprintf('Inertia prop [%s] was marked as invalid by the closure.', $path));
@@ -152,19 +150,7 @@ final class AssertableInertia
      */
     public function prop(?string $path = null): mixed
     {
-        $value = $this->page['props'];
-        if ($path === null) {
-            return $value;
-        }
-
-        foreach (explode('.', $path) as $segment) {
-            if (!is_array($value) || !array_key_exists($segment, $value)) {
-                return null;
-            }
-            $value = $value[$segment];
-        }
-
-        return $value;
+        return $path === null ? $this->page['props'] : $this->lookup($path)[1];
     }
 
     /**
@@ -285,16 +271,34 @@ final class AssertableInertia
         return $this->page;
     }
 
-    private function propExists(string $path): bool
+    /**
+     * The value of a prop that must exist: a null prop passes, a missing
+     * one fails.
+     */
+    private function existingProp(string $path): mixed
+    {
+        [$found, $value] = $this->lookup($path);
+        PHPUnit::assertTrue($found, sprintf('Inertia prop [%s] does not exist.', $path));
+
+        return $value;
+    }
+
+    /**
+     * Resolves a dot path in the props, telling a missing prop apart from a
+     * null one.
+     *
+     * @return array{0: bool, 1: mixed} [found, value]
+     */
+    private function lookup(string $path): array
     {
         $value = $this->page['props'];
         foreach (explode('.', $path) as $segment) {
             if (!is_array($value) || !array_key_exists($segment, $value)) {
-                return false;
+                return [false, null];
             }
             $value = $value[$segment];
         }
 
-        return true;
+        return [true, $value];
     }
 }
