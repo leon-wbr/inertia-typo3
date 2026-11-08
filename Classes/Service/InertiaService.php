@@ -207,7 +207,7 @@ class InertiaService
      *
      * @param array<string, string|list<string>> $errors
      */
-    public function withErrors(array $errors, string $bag = 'default'): static
+    public function withErrors(array $errors, string $bag = 'default', ?ServerRequestInterface $request = null): static
     {
         $normalized = [];
         foreach ($errors as $field => $messages) {
@@ -217,9 +217,9 @@ class InertiaService
             }
         }
 
-        $stored = $this->getErrors();
+        $stored = $this->getErrors($request);
         $stored[$bag] = array_merge($stored[$bag] ?? [], $normalized);
-        $this->setSessionData(SessionKey::ERRORS, $stored);
+        $this->setSessionData(SessionKey::ERRORS, $stored, $request);
 
         return $this;
     }
@@ -243,12 +243,8 @@ class InertiaService
      */
     public function pullErrors(?ServerRequestInterface $request = null): array
     {
-        $errors = $this->getErrors($request);
-        if ($errors !== []) {
-            $this->setSessionData(SessionKey::ERRORS, null, $request);
-        }
-
-        return $errors;
+        /** @var array<string, array<string, list<string>>> */
+        return $this->pullSessionArray(SessionKey::ERRORS, $request);
     }
 
     /**
@@ -258,7 +254,7 @@ class InertiaService
      *
      * @param \BackedEnum|\UnitEnum|string|array<string, mixed> $key
      */
-    public function flash(\BackedEnum|\UnitEnum|string|array $key, mixed $value = null): static
+    public function flash(\BackedEnum|\UnitEnum|string|array $key, mixed $value = null, ?ServerRequestInterface $request = null): static
     {
         if (!is_array($key)) {
             $key = match (true) {
@@ -269,7 +265,7 @@ class InertiaService
             $key = [$key => $value];
         }
 
-        $this->setSessionData(SessionKey::FLASH_DATA, array_merge($this->getFlashed(), $key));
+        $this->setSessionData(SessionKey::FLASH_DATA, array_merge($this->getFlashed($request), $key), $request);
 
         return $this;
     }
@@ -291,12 +287,7 @@ class InertiaService
      */
     public function pullFlashed(?ServerRequestInterface $request = null): array
     {
-        $flash = $this->getFlashed($request);
-        if ($flash !== []) {
-            $this->setSessionData(SessionKey::FLASH_DATA, null, $request);
-        }
-
-        return $flash;
+        return $this->pullSessionArray(SessionKey::FLASH_DATA, $request);
     }
 
     /**
@@ -406,6 +397,22 @@ class InertiaService
         $user = $this->frontendUser($request);
 
         return $user !== null ? $user->getSessionData($key) : ($this->sessionFallback[$key] ?? null);
+    }
+
+    /**
+     * An array from the session, which is then cleared.
+     *
+     * @return array<string, mixed>
+     */
+    protected function pullSessionArray(string $key, ?ServerRequestInterface $request = null): array
+    {
+        $value = $this->getSessionData($key, $request);
+        if (!is_array($value) || $value === []) {
+            return [];
+        }
+        $this->setSessionData($key, null, $request);
+
+        return $value;
     }
 
     protected function setSessionData(string $key, mixed $value, ?ServerRequestInterface $request = null): void
