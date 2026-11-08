@@ -13,6 +13,7 @@ use LeonWbr\Inertia\Props\ProvidesScrollMetadata;
 use LeonWbr\Inertia\Props\ScrollMetadata;
 use LeonWbr\Inertia\Props\ScrollProp;
 use LeonWbr\Inertia\Support\Header;
+use LeonWbr\Inertia\Support\Key;
 use LeonWbr\Inertia\Support\SessionKey;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -261,12 +262,7 @@ class InertiaService
     public function flash(\BackedEnum|\UnitEnum|string|array $key, mixed $value = null): static
     {
         if (!is_array($key)) {
-            $key = match (true) {
-                $key instanceof \BackedEnum => (string)$key->value,
-                $key instanceof \UnitEnum => $key->name,
-                default => $key,
-            };
-            $key = [$key => $value];
+            $key = [Key::from($key) => $value];
         }
 
         $this->setSessionData(SessionKey::FLASH_DATA, array_merge($this->getFlashed(), $key));
@@ -307,7 +303,7 @@ class InertiaService
      */
     public function page(string $component, array $props = [], ?ServerRequestInterface $request = null): array
     {
-        $request ??= $this->request ?? throw new \LogicException('InertiaService has no request; call setRequest() or pass one.', 1762160001);
+        $request = $this->requireRequest($request);
 
         [$resolvedProps, $metadata] = (new PropsResolver($request, $component))->resolve($this->sharedProps, $props);
 
@@ -333,7 +329,7 @@ class InertiaService
      */
     public function render(string $component, array $props = [], ?ServerRequestInterface $request = null): ResponseInterface
     {
-        $request ??= $this->request ?? throw new \LogicException('InertiaService has no request; call setRequest() or pass one.', 1762160002);
+        $request = $this->requireRequest($request);
         $page = $this->page($component, $props, $request);
 
         if ($this->isInertiaRequest($request)) {
@@ -388,6 +384,15 @@ class InertiaService
         $query = $uri->getQuery();
 
         return $query === '' ? $path : $path . '?' . $query;
+    }
+
+    /**
+     * The given request, else the one the middleware set.
+     */
+    protected function requireRequest(?ServerRequestInterface $request): ServerRequestInterface
+    {
+        return $request ?? $this->request
+            ?? throw new \LogicException('InertiaService has no request; call setRequest() or pass one.', 1762160001);
     }
 
     /**

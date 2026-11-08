@@ -222,4 +222,20 @@ final class InertiaServiceTest extends UnitTestCase
         self::assertSame(['status' => 'Saved', 'level' => 'success'], $page['flash']);
         self::assertArrayNotHasKey('flash', $inertia->page('Page', [], $this->inertiaRequest()));
     }
+
+    #[Test]
+    public function pageWithoutARequestFails(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionCode(1762160001);
+        $this->service()->page('Page');
+    }
+
+    #[Test]
+    public function renderWithoutARequestFailsWithTheSameCode(): void
+    {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionCode(1762160001);
+        $this->service()->render('Page');
+    }
 }
