@@ -1,0 +1,39 @@
+{
+    // Mutation testing where it pays: the protocol logic with dense
+    // branching and strong unit tests. `composer test:mutation` in
+    // example/ (needs pcov or Xdebug).
+    //
+    // This file sits next to the PHPUnit configs on purpose: Infection
+    // resolves the source directories against this file, and writes them
+    // into a copy of phpunit.xml (a symlink to UnitTests.xml) that resolves
+    // them against Build/phpunit. Both have to be the same directory.
+    "$schema": "https://raw.githubusercontent.com/infection/infection/master/resources/schema.json",
+    "source": {
+        "directories": [
+            "../../Classes/Middleware",
+            "../../Classes/Props",
+            "../../Classes/Service"
+        ],
+        "excludes": [
+            // Relative to each directory above. Covered by functional
+            // tests, which Infection doesn't run.
+            "NavigationService.php",
+            "InertiaContentElementRenderer.php"
+        ]
+    },
+    "phpUnit": {
+        "configDir": ".",
+        "customPath": "../../example/vendor/bin/phpunit"
+    },
+    "tmpDir": "../../example/var/cache/infection",
+    "logs": {
+        "text": "../../example/var/infection/infection.log",
+        "summary": "../../example/var/infection/summary.log"
+    },
+    "mutators": {
+        "@default": true
+    },
+    // Measured at 83.5% (552 of 661 mutants killed); raise as tests improve.
+    "minMsi": 83,
+    "minCoveredMsi": 83
+}

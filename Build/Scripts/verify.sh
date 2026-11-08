@@ -29,6 +29,9 @@ composer check
 step "Unit test coverage"
 composer test:coverage
 
+step "Mutation testing (Infection: middleware, props, services)"
+composer test:mutation
+
 step "Inertia parity (Build/Parity/parity.json against the installed @inertiajs/core)"
 node --test "$ROOT/Build/Scripts/"
 node "$ROOT/Build/Scripts/parity.mjs" local
