@@ -9,6 +9,7 @@ services:
     exclude:
       - '../Classes/Event/*'
       - '../Classes/Props/*'
+      - '../Classes/Settings/*'
       - '../Classes/Support/*'
       - '../Classes/Testing/*'
 
