@@ -12,6 +12,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationExtensionNotConfiguredException;
+use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationPathDoesNotExistException;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Http\HtmlResponse;
 use TYPO3\CMS\Core\Http\PropagateResponseException;
@@ -222,6 +224,40 @@ final class InertiaMiddlewareTest extends UnitTestCase
         self::assertSame('v2', $this->inertia->getVersion());
         self::assertSame('App', $this->inertia->getRootView());
         self::assertSame($this->inertia, $handler->request?->getAttribute('inertia'));
+    }
+
+    /**
+     * @return array<string, array{\Throwable}>
+     */
+    public static function notConfiguredYet(): array
+    {
+        return [
+            'extension not configured' => [new ExtensionConfigurationExtensionNotConfiguredException('', 1)],
+            'path does not exist' => [new ExtensionConfigurationPathDoesNotExistException('', 1)],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('notConfiguredYet')]
+    public function versionFallsBackToTheViteDefaultBeforeTheExtensionIsConfigured(\Throwable $notConfigured): void
+    {
+        $extensionConfiguration = $this->createStub(ExtensionConfiguration::class);
+        $extensionConfiguration->method('get')->willThrowException($notConfigured);
+        $middleware = new InertiaMiddleware($this->inertia, $extensionConfiguration);
+
+        // The default manifest doesn't exist in the test environment.
+        self::assertNull($middleware->version($this->request()));
+    }
+
+    #[Test]
+    public function versionDoesNotHideOtherConfigurationErrors(): void
+    {
+        $extensionConfiguration = $this->createStub(ExtensionConfiguration::class);
+        $extensionConfiguration->method('get')->willThrowException(new \RuntimeException('broken', 1762160099));
+        $middleware = new InertiaMiddleware($this->inertia, $extensionConfiguration);
+
+        $this->expectExceptionCode(1762160099);
+        $middleware->version($this->request());
     }
 
     /**

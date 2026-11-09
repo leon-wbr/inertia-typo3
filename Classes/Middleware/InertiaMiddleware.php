@@ -11,6 +11,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationExtensionNotConfiguredException;
+use TYPO3\CMS\Core\Configuration\Exception\ExtensionConfigurationPathDoesNotExistException;
 use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Core\Environment;
 use TYPO3\CMS\Core\Http\PropagateResponseException;
@@ -104,7 +106,9 @@ class InertiaMiddleware implements MiddlewareInterface
     {
         try {
             $manifestPath = (string)$this->extensionConfiguration->get('inertia', 'manifestPath');
-        } catch (\Throwable) {
+        } catch (ExtensionConfigurationExtensionNotConfiguredException|ExtensionConfigurationPathDoesNotExistException) {
+            // Not configured yet (a fresh install, before extension:setup):
+            // use the Vite default. Anything else is a real fault.
             $manifestPath = self::DEFAULT_MANIFEST_PATH;
         }
         if ($manifestPath === '') {
