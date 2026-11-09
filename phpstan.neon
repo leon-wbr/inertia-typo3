@@ -1,8 +1,13 @@
 includes:
   - example/vendor/saschaegerer/phpstan-typo3/extension.neon
+  # Level 9 errors that existed when the level was raised; fix them and
+  # regenerate it (--generate-baseline=../phpstan-baseline.neon from
+  # example/), never add to it. Unmatched entries fail the run, so the
+  # baseline can only shrink.
+  - phpstan-baseline.neon
 
 parameters:
-  level: 8
+  level: 9
   paths:
     - Classes
     - Configuration
