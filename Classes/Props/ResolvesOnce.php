@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace LeonWbr\Inertia\Props;
 
+use LeonWbr\Inertia\Support\Key;
+
 /**
  * The once behaviour of OnceProp, DeferProp, OptionalProp and MergeProp,
  * following inertia-laravel 3.x (Inertia\ResolvesOnce).
@@ -51,11 +53,7 @@ trait ResolvesOnce
 
     public function as(\BackedEnum|\UnitEnum|string $key): static
     {
-        $this->key = match (true) {
-            $key instanceof \BackedEnum => (string)$key->value,
-            $key instanceof \UnitEnum => $key->name,
-            default => $key,
-        };
+        $this->key = Key::from($key);
 
         return $this;
     }
