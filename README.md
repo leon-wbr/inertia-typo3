@@ -76,7 +76,7 @@ runs everything from scratch and exits non-zero on the first failure:
 
 1. `composer install`, `pnpm install`, a fresh database, `typo3 setup` and the example content;
 2. `composer validate`, PHP CS Fixer and PHPStan (level 8);
-3. PHPUnit unit and functional tests (TYPO3 testing framework, SQLite), and the unit tests again with pcov, failing below the minimum line coverage set in `example/composer.json`;
+3. PHPUnit unit and functional tests (TYPO3 testing framework, SQLite), and the unit tests again with pcov, failing below the minimum line coverage set in `example/composer.json`, then mutation testing of the middleware, props and services with Infection (`composer test:mutation` in `example/`), failing below the minimum MSI in `Build/phpunit/infection.json5`;
 4. the Inertia parity check: the protocol surface in `Build/Parity/parity.json` against the installed `@inertiajs/core` (see [TODO.md](TODO.md#keeping-this-list-in-sync));
 5. ESLint, Prettier and the TypeScript 7 typecheck;
 6. a Vite production build;
