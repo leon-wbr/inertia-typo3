@@ -47,7 +47,7 @@ final class ScrollProp implements Deferrable, Mergeable
         // Until the request's merge intent is known (a deferred scroll prop
         // is announced before it is resolved), new items are appended.
         $this->append($this->wrapper);
-        $this->metadata = is_callable($metadata) && !$metadata instanceof ProvidesScrollMetadata
+        $this->metadata = \is_callable($metadata) && !$metadata instanceof ProvidesScrollMetadata
             ? \Closure::fromCallable($metadata)
             : $metadata;
     }
@@ -74,7 +74,7 @@ final class ScrollProp implements Deferrable, Mergeable
         $metadata = match (true) {
             $this->metadata instanceof ProvidesScrollMetadata => $this->metadata,
             $this->metadata instanceof \Closure => ($this->metadata)($raw),
-            is_array($this->metadata) => ScrollMetadata::fromArray($this->metadata + ['pageName' => $this->pageName]),
+            \is_array($this->metadata) => ScrollMetadata::fromArray($this->metadata + ['pageName' => $this->pageName]),
             $raw instanceof PaginatorInterface => ScrollMetadata::fromPaginator($raw, $this->pageName),
             default => throw new \InvalidArgumentException(
                 'A scroll prop needs a TYPO3 paginator as value, or metadata (an array, a ProvidesScrollMetadata or a callback).',
@@ -107,7 +107,7 @@ final class ScrollProp implements Deferrable, Mergeable
             ];
         }
 
-        if (is_array($raw) && array_is_list($raw)) {
+        if (\is_array($raw) && array_is_list($raw)) {
             return [$this->wrapper => $raw];
         }
 
@@ -133,6 +133,6 @@ final class ScrollProp implements Deferrable, Mergeable
      */
     private static function listOf(iterable $items): array
     {
-        return array_values(is_array($items) ? $items : iterator_to_array($items, false));
+        return array_values(\is_array($items) ? $items : iterator_to_array($items, false));
     }
 }

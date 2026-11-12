@@ -34,8 +34,8 @@ final class ClientViewHelper extends AbstractViewHelper
 
         $manifest = json_decode((string)file_get_contents($manifestFile), true, 512, JSON_THROW_ON_ERROR);
         $tags = [];
-        foreach (is_array($manifest) ? $manifest : [] as $chunk) {
-            if (!is_array($chunk) || ($chunk['isEntry'] ?? false) !== true) {
+        foreach (\is_array($manifest) ? $manifest : [] as $chunk) {
+            if (!\is_array($chunk) || ($chunk['isEntry'] ?? false) !== true) {
                 continue;
             }
             foreach ((array)($chunk['css'] ?? []) as $css) {
@@ -55,6 +55,6 @@ final class ClientViewHelper extends AbstractViewHelper
             : null;
         $client = $request instanceof ServerRequestInterface ? (string)($request->getCookieParams()[self::COOKIE] ?? '') : '';
 
-        return in_array($client, self::CLIENTS, true) ? $client : 'react';
+        return \in_array($client, self::CLIENTS, true) ? $client : 'react';
     }
 }

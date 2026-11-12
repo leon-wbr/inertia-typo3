@@ -87,7 +87,7 @@ class InertiaMiddleware implements MiddlewareInterface
             $response = $this->onEmptyResponse($request);
         }
 
-        if ($response->getStatusCode() === 302 && in_array($request->getMethod(), ['PUT', 'PATCH', 'DELETE'], true)) {
+        if ($response->getStatusCode() === 302 && \in_array($request->getMethod(), ['PUT', 'PATCH', 'DELETE'], true)) {
             $response = $response->withStatus(303);
         }
 
@@ -222,12 +222,12 @@ class InertiaMiddleware implements MiddlewareInterface
             return $request;
         }
 
-        return is_array($data) ? $request->withParsedBody($data) : $request;
+        return \is_array($data) ? $request->withParsedBody($data) : $request;
     }
 
     protected function isRedirect(ResponseInterface $response): bool
     {
-        return in_array($response->getStatusCode(), [301, 302, 303, 307, 308], true);
+        return \in_array($response->getStatusCode(), [301, 302, 303, 307, 308], true);
     }
 
     /**
