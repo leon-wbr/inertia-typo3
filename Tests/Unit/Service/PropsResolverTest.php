@@ -13,6 +13,8 @@ use LeonWbr\Inertia\Props\ScrollMetadata;
 use LeonWbr\Inertia\Props\ScrollProp;
 use LeonWbr\Inertia\Service\PropsResolver;
 use LeonWbr\Inertia\Support\Header;
+use LeonWbr\Inertia\Tests\Unit\Fixtures\FixedClockOnceProp;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Http\ServerRequest;
@@ -268,19 +270,43 @@ final class PropsResolverTest extends UnitTestCase
         self::assertSame(['plans' => ['basic']], $props);
     }
 
+    /**
+     * @return array<string, array{\DateTimeInterface|\DateInterval|int}>
+     */
+    public static function expiries(): array
+    {
+        return [
+            'seconds' => [90],
+            'a point in time' => [new \DateTimeImmutable('@1800000090')],
+            'an interval' => [new \DateInterval('PT90S')],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('expiries')]
+    public function onceExpiryIsCountedFromNow(\DateTimeInterface|\DateInterval|int $until): void
+    {
+        $prop = (new FixedClockOnceProp(1_800_000_000))->until($until);
+
+        self::assertSame(1_800_000_090_000, $prop->expiresAt());
+    }
+
+    #[Test]
+    public function anExpiryInThePastIsNow(): void
+    {
+        $prop = (new FixedClockOnceProp(1_800_000_000))->until(new \DateTimeImmutable('@1700000000'));
+
+        self::assertSame(1_800_000_000_000, $prop->expiresAt());
+    }
+
     #[Test]
     public function oncePropsUseTheirCustomKeyAndExpiry(): void
     {
-        $before = time() * 1000;
         [, $metadata] = (new PropsResolver($this->request(), 'Page'))->resolve([], [
-            'plans' => (new OnceProp(static fn(): array => []))->as('pricing-plans')->until(60),
+            'plans' => (new FixedClockOnceProp(1_800_000_000))->as('pricing-plans')->until(60),
         ]);
 
-        self::assertSame('plans', $metadata['onceProps']['pricing-plans']['prop']);
-        $expiresAt = $metadata['onceProps']['pricing-plans']['expiresAt'];
-        self::assertIsInt($expiresAt);
-        self::assertGreaterThanOrEqual($before + 60_000, $expiresAt);
-        self::assertLessThanOrEqual(time() * 1000 + 60_000, $expiresAt);
+        self::assertSame(['prop' => 'plans', 'expiresAt' => 1_800_000_060_000], $metadata['onceProps']['pricing-plans']);
 
         $request = $this->request([Header::EXCEPT_ONCE_PROPS => 'pricing-plans']);
         [$props] = (new PropsResolver($request, 'Page'))->resolve([], [
