@@ -29,7 +29,11 @@ return (new PhpCsFixer\Config())
     ->setRules([
         '@PER-CS3x0' => true,
         '@PHP8x2Migration' => true,
+        '@PHP8x2Migration:risky' => true,
         'declare_strict_types' => true,
+        // Backslash only the functions PHP compiles to opcodes when they
+        // are fully qualified (strlen, is_array, count, …).
+        'native_function_invocation' => ['include' => ['@compiler_optimized'], 'scope' => 'namespaced', 'strict' => true],
         'no_unused_imports' => true,
         'ordered_imports' => ['imports_order' => ['class', 'function', 'const'], 'sort_algorithm' => 'alpha'],
         'single_quote' => true,

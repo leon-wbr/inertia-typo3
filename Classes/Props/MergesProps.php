@@ -44,7 +44,7 @@ trait MergesProps
      */
     public function matchOn(string|array $matchOn): static
     {
-        $this->matchOn = is_string($matchOn) ? [$matchOn] : $matchOn;
+        $this->matchOn = \is_string($matchOn) ? [$matchOn] : $matchOn;
 
         return $this;
     }
@@ -54,7 +54,7 @@ trait MergesProps
      */
     public function append(bool|string $path = true, ?string $matchOn = null): static
     {
-        if (is_bool($path)) {
+        if (\is_bool($path)) {
             $this->append = $path;
         } else {
             $this->appendsAtPaths[] = $path;
@@ -71,7 +71,7 @@ trait MergesProps
      */
     public function prepend(bool|string $path = true, ?string $matchOn = null): static
     {
-        if (is_bool($path)) {
+        if (\is_bool($path)) {
             $this->append = !$path;
         } else {
             $this->prependsAtPaths[] = $path;

@@ -103,8 +103,8 @@ final class AssertableInertia
         $value = $this->existingProp($path);
 
         if ($count !== null) {
-            PHPUnit::assertIsArray($value, sprintf('Inertia prop [%s] is not an array.', $path));
-            PHPUnit::assertCount($count, $value, sprintf('Inertia prop [%s] does not have %d items.', $path, $count));
+            PHPUnit::assertIsArray($value, \sprintf('Inertia prop [%s] is not an array.', $path));
+            PHPUnit::assertCount($count, $value, \sprintf('Inertia prop [%s] does not have %d items.', $path, $count));
         }
 
         return $this;
@@ -124,7 +124,7 @@ final class AssertableInertia
 
     public function missing(string $path): self
     {
-        PHPUnit::assertFalse($this->lookup($path)[0], sprintf('Inertia prop [%s] exists, but should be missing.', $path));
+        PHPUnit::assertFalse($this->lookup($path)[0], \sprintf('Inertia prop [%s] exists, but should be missing.', $path));
 
         return $this;
     }
@@ -137,9 +137,9 @@ final class AssertableInertia
         $actual = $this->existingProp($path);
 
         if ($expected instanceof \Closure) {
-            PHPUnit::assertTrue($expected($actual) === true, sprintf('Inertia prop [%s] was marked as invalid by the closure.', $path));
+            PHPUnit::assertTrue($expected($actual) === true, \sprintf('Inertia prop [%s] was marked as invalid by the closure.', $path));
         } else {
-            PHPUnit::assertSame($expected, $actual, sprintf('Inertia prop [%s] does not match the expected value.', $path));
+            PHPUnit::assertSame($expected, $actual, \sprintf('Inertia prop [%s] does not match the expected value.', $path));
         }
 
         return $this;
@@ -181,7 +181,7 @@ final class AssertableInertia
     public function hasDeferredProps(string $group, array $props): self
     {
         $deferred = $this->page['deferredProps'][$group] ?? [];
-        PHPUnit::assertEqualsCanonicalizing($props, $deferred, sprintf('Unexpected deferred props in group [%s].', $group));
+        PHPUnit::assertEqualsCanonicalizing($props, $deferred, \sprintf('Unexpected deferred props in group [%s].', $group));
 
         return $this;
     }
@@ -223,9 +223,9 @@ final class AssertableInertia
      */
     public function hasOnceProp(string $key, ?string $prop = null): self
     {
-        PHPUnit::assertArrayHasKey($key, $this->page['onceProps'] ?? [], sprintf('[%s] is not a once prop.', $key));
+        PHPUnit::assertArrayHasKey($key, $this->page['onceProps'] ?? [], \sprintf('[%s] is not a once prop.', $key));
         if ($prop !== null) {
-            PHPUnit::assertSame($prop, $this->page['onceProps'][$key]['prop'], sprintf('Once prop [%s] points to another prop.', $key));
+            PHPUnit::assertSame($prop, $this->page['onceProps'][$key]['prop'], \sprintf('Once prop [%s] points to another prop.', $key));
         }
 
         return $this;
@@ -238,9 +238,9 @@ final class AssertableInertia
      */
     public function hasScrollProp(string $path, array $metadata = []): self
     {
-        PHPUnit::assertArrayHasKey($path, $this->page['scrollProps'] ?? [], sprintf('[%s] is not a scroll prop.', $path));
+        PHPUnit::assertArrayHasKey($path, $this->page['scrollProps'] ?? [], \sprintf('[%s] is not a scroll prop.', $path));
         foreach ($metadata as $key => $value) {
-            PHPUnit::assertSame($value, $this->page['scrollProps'][$path][$key] ?? null, sprintf('Scroll prop [%s] has another %s.', $path, $key));
+            PHPUnit::assertSame($value, $this->page['scrollProps'][$path][$key] ?? null, \sprintf('Scroll prop [%s] has another %s.', $path, $key));
         }
 
         return $this;
@@ -248,9 +248,9 @@ final class AssertableInertia
 
     public function hasFlash(string $key, mixed $expected = null): self
     {
-        PHPUnit::assertArrayHasKey($key, $this->page['flash'] ?? [], sprintf('No flash data [%s].', $key));
-        if (func_num_args() > 1) {
-            PHPUnit::assertSame($expected, $this->page['flash'][$key], sprintf('Flash data [%s] does not match.', $key));
+        PHPUnit::assertArrayHasKey($key, $this->page['flash'] ?? [], \sprintf('No flash data [%s].', $key));
+        if (\func_num_args() > 1) {
+            PHPUnit::assertSame($expected, $this->page['flash'][$key], \sprintf('Flash data [%s] does not match.', $key));
         }
 
         return $this;
@@ -258,7 +258,7 @@ final class AssertableInertia
 
     public function missingFlash(string $key): self
     {
-        PHPUnit::assertArrayNotHasKey($key, $this->page['flash'] ?? [], sprintf('Flash data [%s] exists, but should be missing.', $key));
+        PHPUnit::assertArrayNotHasKey($key, $this->page['flash'] ?? [], \sprintf('Flash data [%s] exists, but should be missing.', $key));
 
         return $this;
     }
@@ -278,7 +278,7 @@ final class AssertableInertia
     private function existingProp(string $path): mixed
     {
         [$found, $value] = $this->lookup($path);
-        PHPUnit::assertTrue($found, sprintf('Inertia prop [%s] does not exist.', $path));
+        PHPUnit::assertTrue($found, \sprintf('Inertia prop [%s] does not exist.', $path));
 
         return $value;
     }
@@ -293,7 +293,7 @@ final class AssertableInertia
     {
         $value = $this->page['props'];
         foreach (explode('.', $path) as $segment) {
-            if (!is_array($value) || !array_key_exists($segment, $value)) {
+            if (!\is_array($value) || !\array_key_exists($segment, $value)) {
                 return [false, null];
             }
             $value = $value[$segment];

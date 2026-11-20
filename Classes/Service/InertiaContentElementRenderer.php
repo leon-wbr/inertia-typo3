@@ -95,11 +95,11 @@ class InertiaContentElementRenderer
             $value = iterator_to_array($value, false);
         }
 
-        if (is_array($value)) {
+        if (\is_array($value)) {
             return array_map($this->normalize(...), $value);
         }
 
-        if (is_object($value)) {
+        if (\is_object($value)) {
             return method_exists($value, '__toString') ? (string)$value : null;
         }
 
@@ -135,10 +135,10 @@ class InertiaContentElementRenderer
     {
         $result = [];
         foreach ($array as $key => $value) {
-            $newKey = is_string($key)
+            $newKey = \is_string($key)
                 ? lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $key))))
                 : $key;
-            $result[$newKey] = is_array($value) ? $this->convertKeysToCamelCase($value) : $value;
+            $result[$newKey] = \is_array($value) ? $this->convertKeysToCamelCase($value) : $value;
         }
 
         return $result;

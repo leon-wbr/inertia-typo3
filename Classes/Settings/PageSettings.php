@@ -37,7 +37,7 @@ final readonly class PageSettings
 
     public function rendersHtmlFor(string $cType): bool
     {
-        return !in_array($cType, $this->typedTypes, true);
+        return !\in_array($cType, $this->typedTypes, true);
     }
 
     /**

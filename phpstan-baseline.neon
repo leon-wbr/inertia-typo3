@@ -199,12 +199,6 @@ parameters:
 			path: Tests/Unit/Service/PropsResolverTest.php
 
 		-
-			message: '#^Cannot access offset ''expiresAt'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 1
-			path: Tests/Unit/Service/PropsResolverTest.php
-
-		-
 			message: '#^Cannot access offset ''items'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
@@ -218,12 +212,6 @@ parameters:
 
 		-
 			message: '#^Cannot access offset ''pricing\-plans'' on mixed\.$#'
-			identifier: offsetAccess.nonOffsetAccessible
-			count: 2
-			path: Tests/Unit/Service/PropsResolverTest.php
-
-		-
-			message: '#^Cannot access offset ''prop'' on mixed\.$#'
 			identifier: offsetAccess.nonOffsetAccessible
 			count: 1
 			path: Tests/Unit/Service/PropsResolverTest.php

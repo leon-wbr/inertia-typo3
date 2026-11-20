@@ -125,8 +125,8 @@ final class PropsResolver
 
             $this->collectMetadata($prop, $path);
 
-            $result[$key] = is_array($value)
-                ? $this->resolveProps($value, $path, $parentWasResolved || !is_array($prop))
+            $result[$key] = \is_array($value)
+                ? $this->resolveProps($value, $path, $parentWasResolved || !\is_array($prop))
                 : $value;
         }
 
@@ -192,7 +192,7 @@ final class PropsResolver
         return $prop instanceof Onceable
             && $prop->shouldResolveOnce()
             && !$prop->shouldBeRefreshed()
-            && in_array($prop->getKey() ?? $path, $this->loadedOnceProps, true);
+            && \in_array($prop->getKey() ?? $path, $this->loadedOnceProps, true);
     }
 
     private function collectMetadata(mixed $prop, string $path): void
@@ -204,7 +204,7 @@ final class PropsResolver
         if ($prop instanceof ScrollProp) {
             $this->scrollProps[$path] = [
                 ...$prop->metadata($this->request),
-                'reset' => in_array($path, $this->resetProps, true),
+                'reset' => \in_array($path, $this->resetProps, true),
             ];
         }
 
@@ -231,7 +231,7 @@ final class PropsResolver
 
     private function collectMergeableMetadata(string $path, Mergeable $prop): void
     {
-        if (in_array($path, $this->resetProps, true)) {
+        if (\in_array($path, $this->resetProps, true)) {
             return;
         }
 
@@ -319,7 +319,7 @@ final class PropsResolver
             $value->configureMergeIntent($this->request);
         }
 
-        if ($value instanceof \Closure || (is_object($value) && is_callable($value))) {
+        if ($value instanceof \Closure || (\is_object($value) && \is_callable($value))) {
             $value = $value($this->request);
         }
 
@@ -348,7 +348,7 @@ final class PropsResolver
     private static function unpackDotProps(array $props, ServerRequestInterface $request): array
     {
         foreach ($props as $key => $value) {
-            if (!is_string($key) || !str_contains($key, '.')) {
+            if (!\is_string($key) || !str_contains($key, '.')) {
                 continue;
             }
 
@@ -360,7 +360,7 @@ final class PropsResolver
                 if (isset($current[$segment]) && $current[$segment] instanceof \Closure) {
                     $current[$segment] = $current[$segment]($request);
                 }
-                if (!isset($current[$segment]) || !is_array($current[$segment])) {
+                if (!isset($current[$segment]) || !\is_array($current[$segment])) {
                     $current[$segment] = [];
                 }
                 $current = &$current[$segment];

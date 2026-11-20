@@ -37,9 +37,9 @@ final class CaseEndpoints implements MiddlewareInterface
 
         $method = $request->getMethod();
         $body = $request->getParsedBody();
-        $body = is_array($body) ? $body : [];
+        $body = \is_array($body) ? $body : [];
 
-        return match (substr($path, strlen(self::PREFIX))) {
+        return match (substr($path, \strlen(self::PREFIX))) {
             // A form: the name is required. Errors (in the bag the client
             // asked for) or a flash message, then back to the form.
             'form' => $this->form($body),
